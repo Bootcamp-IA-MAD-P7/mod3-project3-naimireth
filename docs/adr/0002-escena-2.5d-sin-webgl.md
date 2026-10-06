@@ -64,7 +64,7 @@ de la demo.
 **En contra**
 - **No hay cámara 3D real.** El zoom es una aproximación 2D. Nadie lo notará, pero es
   una limitación real
-- El parallax y el grano se recortaron del alcance para节省 tiempo (§7 del PLAN)
+- El parallax y el grano se recortaron del alcance para ahorrar tiempo (§7 del PLAN)
 - El ciclo de caminar se simplificó a **traslación + balanceo**, sin piernas articuladas.
   A tamaño de escena se lee igual. Es el primer candidato a pulir si sobra tiempo
 

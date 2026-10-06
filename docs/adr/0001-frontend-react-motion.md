@@ -30,7 +30,7 @@ Necesitamos, por tanto:
 | **React + Motion** (elegida) | Estado declarativo con un store mínimo; Motion resuelve el 90 % de los requisitos de animación; ecosistema enorme; `layoutId` resuelve el morph con una línea | Dos dependencias extra; hay que aprender su API de transiciones |
 | React sin librería de animación | Cero dependencias; control absoluto | Hay que implementar transiciones, springs y orquestación a mano. Suma días al presupuesto más tenso del proyecto |
 | Vanilla JS + CSS | Sin build step | Un `setTimeout` por animación y sin forma de testear el store. Descartado |
-| Vue / Svelte | `motion` y `stores` muy buenos; `layoutId` nativo en ambos | Nadie del equipo tiene experiencia; React es lo que seKZэ身在─ 器presenta y se defiende en la revisión |
+| Vue / Svelte | `motion` y `stores` muy buenos; `layoutId` nativo en ambos | Nadie del equipo tiene experiencia; React es lo que se presenta y se defiende en la revisión |
 | Next.js | SSR y routing integrado | El servidor de producción es Python. Next añadiría una segunda capa de despliegue sin beneficio |
 | Godot / Unity | Animación real, física | No web, ni responsive, ni desplegable; y el 2.5D es suficiente |
 

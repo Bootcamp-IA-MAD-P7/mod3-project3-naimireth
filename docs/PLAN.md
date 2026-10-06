@@ -345,6 +345,6 @@ persistencia · multiusuario · modelos 3D propios
 ## 12. Evolución futura
 
 - **Fase 9** (fuera de plazo): despliegue, Dockerfile, compose, vídeo publicado
-- **Nivel 2**: segundo proveedor de LLM · Docker · contexto estructurado · imagen ·前的 versiones
+- **Nivel 2**: segundo proveedor de LLM · Docker · contexto estructurado · imagen · versions anteriores
 - **Nivel 3**: SEO como tipo de contenido · LangSmith · multilingüe · noticias · RAG con arXiv
 - **Nivel 4**: agentes autónomos · enrutado por intención · guardrails · evaluación automática · Graph RAG

@@ -21,7 +21,7 @@ testeable sin pagar tokens**.
 | Opción | A favor | En contra |
 |---|---|---|
 | **FastAPI + Pydantic v2** (elegida) | **OpenAPI nativo**: el esquema se genera solo y de ahí salen los tipos TypeScript · Pydantic v2 valida también la salida del LLM, no solo la entrada · typed en todas las capas · async natively | Ecosistema más pequeño que Django |
-| Django + DRF |ORM, admin y auth所得 de serie | OpenAPI de terceros, con más configuración · Pydantic v2 no se integra bien · `django` es mucho peso para una API de 8 rutas sin persistencia |
+| Django + DRF | ORM, admin y auth de serie | OpenAPI de terceros, con más configuración · Pydantic v2 no se integra bien · `django` es mucho peso para una API de 8 rutas sin persistencia |
 | Flask | Simple y conocido | Sin validación con Pydantic de forma nativa · OpenAPI manual · el tipado se pierde justo donde más importa |
 | Node + Express | Un solo lenguaje en todo el proyecto | El uso de Pydantic es un objetivo formativo explícito · peor encaje con el objetivo del bootcamp |
 | Next.js API routes | Fusiona los dos stacks | Dos Implantaciones de frontend y backend mezcladas; peor separación; el servidor es Python |
