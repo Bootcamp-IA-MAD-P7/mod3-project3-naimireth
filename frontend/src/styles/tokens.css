@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════════════════════════════
+   TRAZO · tokens de diseño
+   Paleta: estudio nocturno con luz cálida. Pared fría petróleo,
+   mobiliario y luz cálidos. El contraste de temperatura es lo que
+   hace que la escena tenga profundidad y no se lea plana.
+
+   REFERENCIA 02 · pared azul petróleo / teal oscuro, ventanas a la
+   izquierda con vista urbana, muchas plantas, estanterías de madera,
+   lámparas colgantes oscuras, sofá a la izquierda, mesa central de
+   madera, sillas de color, alfombra geométrica pastel.
+
+   AQUÍ SOLO HAY COLOR, ESPACIADO, CAPAS Y CURVAS.
+
+   La GEOMETRÍA de la escena vive en `src/scene/geometry.ts` y se
+   publica como variables CSS desde `Viewport.tsx` (`--table-x`,
+   `--char-w`, `--world-w`...). No se repite a mano en este archivo:
+   mantener la misma cifra en dos sitios es la causa habitual de que
+   un elemento se solape con otro sin motivo aparente.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Pared y suelo ────────────────────────────────────────── */
+  --c-wall-top: #1f5b63;
+  --c-wall-mid: #1a4c53;
+  --c-wall-bottom: #12383f;
+  --c-skirting: #6b4a34;
+  --c-floor-top: #8a6247;
+  --c-floor-bottom: #6d4b36;
+
+  /* ── Madera (mobiliario cálido) ───────────────────────────── */
+  --c-wood: #a9713f;
+  --c-wood-dark: #7d4f2c;
+  --c-wood-light: #c68f56;
+  --c-wood-top: #d9a468;
+
+  /* ── Luz cálida vs sombra fría ────────────────────────────── */
+  --c-lamp: #ffcf8a;
+  --c-lamp-core: #ffe6b8;
+  --c-sun: #ffc97d;
+  --c-glass: #bcd9e4;
+  --c-city-far: #4a6f7d;
+  --c-city-near: #33545f;
+
+  /* ── Vegetación ───────────────────────────────────────────── */
+  --c-leaf: #4f8f52;
+  --c-leaf-dark: #35693a;
+  --c-leaf-light: #7bb46b;
+  --c-pot: #c4704a;
+  --c-pot-2: #9a5a48;
+
+  /* ── Ropa de la chica ─────────────────────────────────────── */
+  --c-hoodie: #ffb443;
+  --c-hoodie-shadow: #e89328;
+  --c-hoodie-light: #ffd07a;
+  --c-pants: #4a6fa5;
+  --c-pants-shadow: #37548a;
+  --c-pants-light: #6a8cc0;
+  --c-shoes: #fbf7f0;
+  --c-shoes-accent: #ff7a3d;
+  --c-sock: #ff7a3d;
+  --c-hair: #4a3020;
+  --c-hair-light: #6b452c;
+  --c-hair-dark: #33200f;
+  --c-skin: #f8d0ac;
+  --c-skin-shadow: #e2ac83;
+  --c-bag: #243a52;
+  --c-bag-light: #35506e;
+  --c-bag-strap: #1b2c3f;
+
+  /* ── Acentos de interfaz ──────────────────────────────────── */
+  --c-ink: #16262c;
+  --c-ink-soft: #4a5c62;
+  --c-ink-faint: #7d8f95;
+  --c-glass-surface: #f4f8f8;
+  --c-accent: #ff7a3d;
+  --c-accent-deep: #e05a22;
+  --c-secondary: #3fa3a3;
+  --c-secondary-soft: #8fd6d6;
+
+  /* ── Plataformas (03) ─────────────────────────────────────── */
+  --c-platform-instagram: #e8607c;
+  --c-platform-linkedin: #3f7fbf;
+  --c-platform-x: #26262b;
+  --c-platform-blog: #6a9955;
+  --c-platform-pinterest: #d2453c;
+
+  /* ── Espaciado ────────────────────────────────────────────── */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+  --sp-7: 3rem;
+  --sp-8: 4rem;
+
+  /* ── Radios ───────────────────────────────────────────────── */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
+  --r-full: 999px;
+
+  /* ── Tipografía ───────────────────────────────────────────── */
+  --font-display: "Segoe UI", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
+
+  /* ── Capas ────────────────────────────────────────────────── */
+  --z-room: 0;         /* pared, ventana, cuadros               */
+  --z-shelf: 10;       /* estanterías y decoración de pared     */
+  --z-rug: 20;         /* alfombra                               */
+  --z-character: 30;   /* la chica                              */
+  --z-lamp: 35;        /* lámparas colgantes                    */
+  --z-table: 40;       /* mesa y sillas                         */
+  --z-token: 50;       /* tokens de plataforma                  */
+  --z-surface: 60;     /* superficie de trabajo                 */
+  --z-light: 70;       /* iluminación                           */
+  --z-ui: 80;          /* interfaz                              */
+
+  /* ── Movimiento ───────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}

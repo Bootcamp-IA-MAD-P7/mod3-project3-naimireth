@@ -1,0 +1,476 @@
+/* TRAZO · escena.
+ *
+ * El escenario son imágenes reales de `public/visual/`, no un dibujo.
+ * Aquí solo hay tres cosas: el encuadre al viewport, el apilado de
+ * capas y los estados de la interfaz.
+ *
+ * REGLA sobre variables CSS: toda longitud se publica CON unidad. Una
+ * custom property sin unidad no vale para `width` ni para `top`: el
+ * navegador descarta la declaración y la caja cae en `auto`. El
+ * síntoma es silencioso —la escena entera se queda invisible sin dar
+ * ningún error— así que cada caja declara su valor de emergencia.
+ */
+
+:root {
+  color-scheme: dark;
+}
+
+/* ── Página ───────────────────────────────────────────────────── */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #0e2429;
+  color: var(--c-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Capas de la aplicación ───────────────────────────────────── */
+
+.app {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.ui {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: none;
+}
+
+/* ── Encuadre del mundo al viewport ───────────────────────────── */
+
+.world {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.world__scaler {
+  position: relative;
+  width: var(--plate-w, 1702px);
+  height: var(--plate-h, 924px);
+  transform: scale(var(--plate-scale, 1));
+  transform-origin: center center;
+}
+
+.scene__viewport {
+  position: relative;
+  width: var(--plate-w, 1702px);
+  height: var(--plate-h, 924px);
+}
+
+/* Lo mueve la cámara */
+.scene__stage {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* Velo único para separar el fondo. Nunca un filtro por capa: los
+   assets son imágenes y un filtro por elemento las ensucia. */
+.scene__veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 40% 40%, transparent 20%, rgb(10 26 30 / 62%) 100%);
+}
+
+/* ── 02 · la placa del estudio ────────────────────────────────── */
+
+.plate {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* 1:1 con el mundo: la ilustración no se estira ni se recorta. */
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Actores: estantería y chica ─────────────────────────────── */
+
+/* El centrado vive aquí, en un nodo estático. Motion reescribe
+   `transform` entero al animar, así que si este `translateX(-50%)`
+   estuviera en el nodo que anima, se perdería. */
+/* Jerarquía visual del brief: FONDO → pared → muebles → estantería →
+   plataformas → personaje → interacción. Cada capa va después de la
+   anterior en el DOM, y `pointer-events` se enciende solo en la
+   interactiva, para que nada tape lo que tiene debajo. */
+.plate,
+.studio__layer,
+.veil,
+.calibration {
+  position: absolute;
+  inset: 0;
+}
+
+.actor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+/* El trayecto de la chica: nodo aparte para no pelearse con el
+   centrado ni con la respiración, que viven en sus hijos. */
+.walk {
+  position: relative;
+  will-change: transform;
+}
+
+/* Sombras de contacto. No son decoración: son lo que integra los
+   recortes en la ilustración, porque el PNG no trae sombra propia y
+   sin ella todo flota. */
+.contact {
+  position: absolute;
+  left: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgb(38 26 20 / 42%) 0%,
+    rgb(38 26 20 / 22%) 45%,
+    rgb(38 26 20 / 0%) 72%
+  );
+}
+
+.contact--feet {
+  bottom: -6px;
+  width: 62%;
+  height: 26px;
+  transform: translateX(-50%);
+}
+
+.contact--shelf {
+  bottom: -10px;
+  width: 108%;
+  height: 34px;
+  transform: translateX(-50%);
+}
+
+.actor--shelf {
+  z-index: var(--z-shelf);
+}
+
+.actor--character {
+  z-index: var(--z-character);
+}
+
+.pose {
+  /* El balanceo gira sobre los pies, no sobre el centro del dibujo. */
+  transform-origin: 50% 100%;
+  background-repeat: no-repeat;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── 03 · la estantería ──────────────────────────────────────── */
+
+.shelf__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* La imagen es opaca: sin suavizado de bordes, el recorte se leería
+     como un rectángulo pegado encima de la habitación. */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shelf__hits {
+  position: absolute;
+  inset: 0;
+}
+
+.shelf__hit {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  appearance: none;
+}
+
+.shelf__hit[data-active='false'] {
+  cursor: default;
+  pointer-events: none;
+}
+
+.shelf__hit[data-chosen='true'] {
+  cursor: default;
+}
+
+.shelf__hit:focus-visible {
+  outline: 2px solid var(--c-lamp);
+  outline-offset: 3px;
+}
+
+/* La señal de selección es vertical: una columna de luz detrás del
+   objeto. Es el único elemento añadido sobre la imagen, y solo
+   aparece cuando el objeto se puede elegir. */
+.shelf__beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 26%;
+  height: 190%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 214 150 / 46%), transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shelf__tick {
+  position: absolute;
+  inset: 0;
+  border-radius: 14%;
+  box-shadow: 0 0 0 2px rgb(255 226 168 / 55%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shelf__hit[data-active='true'] .shelf__tick {
+  opacity: 0.28;
+  transition: opacity 200ms var(--ease-out);
+}
+
+.shelf__hit[data-active='true']:hover .shelf__tick,
+.shelf__hit[data-chosen='true'] .shelf__tick {
+  opacity: 0.85;
+}
+
+.shelf__hit[data-active='true']:hover .shelf__beam,
+.shelf__hit[data-chosen='true'] .shelf__beam {
+  opacity: 1;
+}
+
+/* ── Iluminación ──────────────────────────────────────────────── */
+/* Solo un velo cálido y una viñeta, por encima de todo, para que la
+   escena respire sin alterar la ilustración. */
+
+.light {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-light);
+  pointer-events: none;
+}
+
+.light__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 105% at 50% 42%, transparent 58%, rgb(6 20 24 / 34%) 100%);
+}
+
+/* ── Calibración (?calib=1) ───────────────────────────────────── */
+
+.calib {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: none;
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+  color: #fff;
+}
+
+.calib__grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-image:
+    linear-gradient(to right, rgb(255 0 128 / 26%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 0 128 / 26%) 1px, transparent 1px);
+}
+
+.calib__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 1px dashed #00e5ff;
+  padding-left: 6px;
+}
+
+.calib__box,
+.calib__hit {
+  position: absolute;
+  border: 1px solid #00e5ff;
+  padding: 2px 4px;
+}
+
+.calib__hit {
+  border-color: #ffd400;
+  color: #ffd400;
+}
+
+/* ── Interfaz ─────────────────────────────────────────────────── */
+
+.ui__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.ui__card,
+.ui__work {
+  pointer-events: auto;
+  max-width: 30rem;
+  padding: var(--sp-6) var(--sp-7);
+  border-radius: var(--r-lg);
+  background: rgb(8 24 28 / 72%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 24px 60px -24px rgb(0 0 0 / 70%);
+  text-align: center;
+  color: #f4f8f8;
+}
+
+.ui__kicker {
+  margin: 0 0 var(--sp-2);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-secondary-soft);
+}
+
+.ui__title {
+  margin: 0 0 var(--sp-3);
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4.4vw, 2.9rem);
+  line-height: 1.05;
+}
+
+.ui__lead {
+  margin: 0 0 var(--sp-5);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #cfe0e0;
+}
+
+.ui__dock {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+}
+
+.ui__pill {
+  margin: 0;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--r-full);
+  background: rgb(8 24 28 / 78%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  color: #eef6f6;
+  font-size: 0.9rem;
+}
+
+.ui__dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  vertical-align: -1px;
+}
+
+.ui__phase {
+  position: absolute;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--r-full);
+  background: rgb(8 24 28 / 62%);
+  color: #cfe0e0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ui__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-secondary-soft);
+  box-shadow: 0 0 8px var(--c-secondary-soft);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border: 0;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--c-lamp) 0%, #e8a24c 100%);
+  color: var(--c-ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.btn__arrow {
+  font-size: 1.05em;
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 1px solid rgb(255 255 255 / 28%);
+  color: #eef6f6;
+}
+
+.ui__work-tag {
+  display: block;
+  margin-bottom: var(--sp-4);
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #cfe0e0;
+}
+
+/* ── Preferencias del sistema ─────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf__hit[data-active='true'] .shelf__tick {
+    transition: none;
+  }
+}
