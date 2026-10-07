@@ -1,7 +1,10 @@
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.prompts.base_rules import BASE_RULES, objective_rules_text
-from app.prompts.platform_rules import platform_rules
+from app.prompts.platform_rules import expectations_text, platform_rules
+
+
+PROMPT_VERSION = "1.1"
 
 
 HUMAN_TEMPLATE = """
@@ -35,10 +38,11 @@ def build_prompt(platform: str = "") -> ChatPromptTemplate:
 
     return ChatPromptTemplate.from_messages(
         [
-            ("system", "{base_rules}\n\n{platform_rules}"),
+            ("system", "{base_rules}\n\n{platform_rules}\n\n{platform_expectations}"),
             ("human", HUMAN_TEMPLATE),
         ]
     ).partial(
         base_rules=base_rules,
         platform_rules=platform_rules(platform),
+        platform_expectations=expectations_text(platform),
     )
