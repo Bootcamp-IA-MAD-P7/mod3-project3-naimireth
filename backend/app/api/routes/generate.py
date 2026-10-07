@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.post("/generate", response_model=GenerateResponse)
 def generate_content(request: GenerateRequest):
-    prompt = build_prompt()
+    prompt = build_prompt(request.platform)
 
     messages = prompt.format_messages(
         brand_context=request.brand_context,
