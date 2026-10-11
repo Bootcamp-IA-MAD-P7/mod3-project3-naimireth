@@ -72,6 +72,15 @@ PLATFORM_EXPECTATIONS = {
 }
 
 
+PLATFORM_NAMES = {
+    "instagram": "Instagram",
+    "linkedin": "LinkedIn",
+    "x": "X",
+    "blog": "Blog",
+    "pinterest": "Pinterest",
+}
+
+
 def platform_expectations(platform: str) -> dict | None:
     return PLATFORM_EXPECTATIONS.get(_normalize(platform))
 
