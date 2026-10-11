@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.routes.generate import router as generate_router
+from app.api.routes.info import router as info_router
 
 
 app = FastAPI(
@@ -12,6 +13,11 @@ app = FastAPI(
 
 app.include_router(
     generate_router,
+    prefix="/api",
+)
+
+app.include_router(
+    info_router,
     prefix="/api",
 )
 
