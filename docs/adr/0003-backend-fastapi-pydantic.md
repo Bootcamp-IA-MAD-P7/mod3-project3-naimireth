@@ -1,6 +1,10 @@
 # ADR-0003 · Backend con FastAPI y Pydantic, contrato único OpenAPI
 
 > **Estado**: Aceptada · **Fecha**: 2026-09-30 · **Fase**: F0
+>
+> *Revisión posterior:* se documenta la implementación real (LangChain, manejo de
+> errores) y las desviaciones respecto al diseño previsto. La decisión de fondo
+> (FastAPI + Pydantic v2) sigue vigente.
 
 ---
 
@@ -30,23 +34,27 @@ testeable sin pagar tokens**.
 
 **FastAPI + Pydantic v2, con OpenAPI como fuente única del contrato.**
 
-**Pydantic v2 se usa en las dos fronteras**, y esa es la decisión de fondo:
+**Pydantic v2 se usa en las fronteras de la API**, y esa es la decisión de fondo:
 
-1. **Frontera de entrada** — valida el `BriefRequest`.
-2. **Frontera de salida del LLM** — valida la respuesta cruda contra el esquema del tipo
-   de contenido. Si el modelo devuelve algo que no encaja, se reintenta **una vez** y,
-   si vuelve a fallar, se devuelve un error controlado con el detalle de qué campo falló.
-3. **Frontera de la API** — el `ContentResponse` que ve el frontend.
+1. **Frontera de entrada** — valida el `GenerateRequest` (los siete campos del brief).
+2. **Frontera de salida del LLM** — la salida estructurada se pide con
+   `ChatGroq.with_structured_output(GeneratedContent, method="json_schema",
+   strict=True)`, de modo que el modelo devuelve directamente el esquema
+   `GeneratedContent` (título opcional, secciones, hashtags y CTA).
+3. **Frontera de la API** — el `GenerateResponse` que ve el frontend.
 
-Como el mismo esquema sirve para las tres, **el frontend puede generar sus tipos desde
-el mismo lugar que valida al LLM**. No hay dos definiciones que puedan divergir.
+Como el mismo esquema Pydantic define la forma de los datos, el contrato queda validado
+en las fronteras de la API. (El diseño hablaba de «generar los tipos del frontend desde
+el mismo lugar»; ver *Desviaciones* más abajo.)
 
-**OpenAPI es la fuente de la verdad del contrato.** Los tipos TypeScript se generan con
-`openapi-typescript` desde `/openapi.json` y se comparan contra los tipos del frontend
-en la Fase 5, **antes** de borrar los mocks. Si difieren, se corrige ahí.
+**OpenAPI expone el contrato** en `/openapi.json` y `/docs`. El diseño preveía generar
+los tipos TypeScript con `openapi-typescript`; en la implementación real los tipos se
+escriben a mano en `frontend/src/types/contract.ts`, como espejo de
+`docs/API_CONTRACT.md`.
 
-**Groq** como proveedor del Nivel 1 (D-03), tras un contrato `LLMProvider` con
-`FakeProvider` para que toda la suite de tests corra **sin red y sin coste**.
+**Groq** como proveedor del Nivel 1 (D-03), usando **LangChain** (`ChatGroq`). El diseño
+preveía un contrato `LLMProvider` con un `FakeProvider` intercambiable; la implementación
+real tiene solo la clase concreta `GroqProvider`.
 
 **Sin persistencia.** Sin base de datos, sin ORM, sin sesiones.
 
@@ -55,9 +63,11 @@ en la Fase 5, **antes** de borrar los mocks. Si difieren, se corrige ahí.
 ## Consecuencias
 
 **A favor**
-- Una sola definición de la forma de los datos, validada en las tres fronteras
-- El contrato se verifica en el build, no en la demo
-- `FakeProvider` hace la suite completa determinista, offline y gratuita
+- Una sola definición de la forma de los datos, validada en la frontera de entrada y en
+  la salida estructurada del LLM
+- El contrato vive en `docs/API_CONTRACT.md` y se refleja en los tipos del frontend
+- La suite corre sin red y sin coste porque los endpoints informativos no llaman al
+  LLM y el test de generación no invoca a Groq (no hay `FakeProvider`)
 - `/docs` y `/openapi.json` salen gratis y sirven de documentación
 
 **En contra**
@@ -66,7 +76,24 @@ en la Fase 5, **antes** de borrar los mocks. Si difieren, se corrige ahí.
   la forma correcta. La calidad depende de las capas de prompt (R-04, R-05)
 
 **Deuda técnica asumida**
-LangChain queda como opción del Nivel 2–3. En el Nivel 1 el cliente Groq nativo cubre el
-caso de uso y evita acoplar el proyecto a una API que cambia entre versiones. Si no
-aporta nada en la Fase 4, no se añade: **la abstracción `LLMProvider` ya es la
-demostración de arquitectura que pide el objetivo del proyecto.**
+El diseño original prefería el cliente Groq nativo y dejar LangChain para el Nivel 2–3.
+La implementación real tomó el camino contrario: **LangChain sí se usa** (ver
+*Desviaciones*).
+
+**Desviaciones respecto al diseño previsto (revisión de documentación)**
+
+- **LangChain sí se usa.** `ChatPromptTemplate` (de `langchain-core`) construye el
+  prompt en `app/prompts/prompt_engine.py` y `ChatGroq` (de `langchain-groq`) es el
+  cliente del modelo en `app/providers/groq_provider.py`, con salida estructurada
+  `method="json_schema"`, `strict=True` y `temperature=0.7`.
+- **No existen `LLMProvider` ni `FakeProvider`.** Solo hay la clase concreta
+  `GroqProvider`. Los tests no llaman al LLM real porque los endpoints informativos no
+  lo invocan y no hay tests de red.
+- **No hay reintentos.** Frente al «se reintenta una vez» del diseño original, el manejo
+  de errores de `/api/generate` (`app/api/routes/generate.py`) es directo:
+  `OutputParserException` → `502` «El modelo devolvió una estructura no válida», y
+  `APIStatusError` de Groq → `502` con el código, el tipo y el mensaje del proveedor.
+- **La validación de la salida** la fuerza el esquema `json_schema` estricto del propio
+  modelo, no una validación posterior con reintento.
+- **Los tipos del frontend no se generan.** Se escriben a mano en
+  `frontend/src/types/contract.ts`.

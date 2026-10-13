@@ -15,22 +15,37 @@ a la mesa y lo convierte en contenido adaptado a esa plataforma.
 El requisito nuclear del proyecto es que **el estudio sea la funcionalidad principal,
 no un añadido posterior**. La interfaz 2D es el producto.
 
+> **Estado real (revisión de documentación).** Este documento describe el diseño
+> previsto (v3.1). A la fecha de esta revisión, el backend existe con la estructura
+> real de §4 y el frontend consume el backend. Sin embargo, varias piezas del diseño
+> original **no** se implementaron: `LLMProvider` con `FakeProvider`, el prompt en
+> «9 capas», la generación de tipos con `openapi-typescript`, el router de cliente y
+> los mocks MSW. Las secciones afectadas lo indican expresamente.
+
 ---
 
 ## 2. Arquitectura
 
 ```
 React (Vite + TypeScript)
-  └─ HTTP/JSON ──▶ FastAPI
-                    ├─▶ Prompt Engine (9 capas)
-                    └─▶ LLMProvider ──▶ Groq  (real)
-                                    └─▶ Fake  (tests y demos)
+  └─ HTTP/JSON ──▶ FastAPI (routers: generate + info)
+                    ├─▶ Prompt engine (build_prompt → ChatPromptTemplate)
+                    └─▶ GroqProvider (ChatGroq) ──▶ Groq  (real)
 ```
 
 **Frontera:** React sabe **cómo se ve** TRAZO. FastAPI sabe **qué es** TRAZO.
 
-OpenAPI es la fuente de verdad del contrato → los tipos TypeScript se generan con
-`openapi-typescript`, nunca se escriben a mano.
+**Desviación respecto al plan.** En el diseño original el prompt se componía en
+«9 capas» y el proveedor pasaba por un `LLMProvider` con `FakeProvider` y un
+`GroqProvider` intercambiables. En la implementación real:
+el prompt se arma en `app/prompts/prompt_engine.py` como **dos mensajes**
+(system = reglas base + reglas del objetivo + reglas de plataforma + salida esperada;
+human = brief), y solo existe la clase concreta `GroqProvider` (LangChain + Groq).
+No hay `FakeProvider` ni reintentos.
+
+El plan preveía generar los tipos TypeScript con `openapi-typescript` desde
+`/openapi.json`. En la implementación real los tipos viven escritos a mano en
+`frontend/src/types/contract.ts`, como espejo de `docs/API_CONTRACT.md`.
 
 ---
 
@@ -39,32 +54,39 @@ OpenAPI es la fuente de verdad del contrato → los tipos TypeScript se generan 
 ### Frontend
 | Herramienta | Versión | Motivo |
 |---|---|---|
-| Vite | 7.x | Arranque instantáneo, build rápido, TS out of the box |
+| Vite | 8.x | Arranque instantáneo, build rápido, TS out of the box |
 | React | 19.x | Componentes declarativos para una UI con mucha estado |
 | TypeScript | `strict: true` | El contrato con FastAPI exige tipos exactos |
-| Motion | 12.x | Orquestación de animaciones, springs, transiciones |
+| Motion | 13.x | Orquestación de animaciones, springs, transiciones |
 | Zustand | 5.x | Un único store para toda la máquina de estados de la escena |
 | SVG + CSS | — | Escena 2.5D sin WebGL (ver ADR-0002) |
 
-**Dependencias de producción al arrancar: 4.** `react`, `react-dom`, `zustand`, `motion`.
-`react-router-dom` llega en la Fase 5, MSW y `openapi-typescript` también.
+**Dependencias de producción: 4.** `react`, `react-dom`, `zustand`, `motion`.
+**No implementado:** `react-router-dom`, MSW y `openapi-typescript` (previstos en la
+Fase 5) **no** se han añadido. Los tests corren con Vitest y el lint con oxlint.
 
 ### Backend
 | Herramienta | Versión | Motivo |
 |---|---|---|
 | Python | **3.12** | Compatibilidad de wheels; la 3.14 rompe dependencias |
-| FastAPI | 0.115+ | OpenAPI nativo → genera los tipos del frontend |
-| Pydantic | v2 | Validación estricta, incluidos los payloads del LLM |
-| pydantic-settings | 2.x | Configuración por entorno, falla rápido |
+| FastAPI | 0.142 | OpenAPI nativo → documenta el contrato |
+| Pydantic | v2 (2.13) | Validación estricta, incluidos los payloads del LLM |
+| python-dotenv | — | Configuración por entorno (`.env`), carga de `GROQ_API_KEY` |
 | Groq | — | LLM del Nivel 1 (D-03) |
-| LangChain | mínimo | Solo si no añade fricción; alternativa nativa documentada |
-| structlog | — | Logs con `request_id` para trazar un fallo de extremo a extremo |
-| pytest · pytest-asyncio · httpx | — | Tests sin llamadas al LLM real |
+| LangChain | `langchain-core` + `langchain-groq` | `ChatPromptTemplate` para el prompt y `ChatGroq` como cliente |
+| pytest | — | Tests sin llamadas al LLM real |
 
 **Sin persistencia en el Nivel 1.** Sin base de datos, sin ORM.
 
+> **Desviación respecto al plan.** `pydantic-settings` figura entre las dependencias
+> instaladas pero **no se usa**: la configuración se carga con `python-dotenv`
+> (`load_dotenv()` en `app/providers/groq_provider.py`) desde `backend/.env`.
+> `structlog` (logs con `request_id`) **no** se añadió. `LangChain` sí se usa (el
+> ADR-0003 lo daba por opcional); `pytest` **no** está en `requirements.txt` y hay que
+> instalarlo aparte para correr la suite.
+
 ### Reglas transversales
-- Duplicación de la versión en `package.json`, `pyproject.toml`, `.nvmrc`, `.python-version` y README → **divergen, hay un fallo**
+- Duplicación de la versión en `package.json`, la versión de la app FastAPI, `.nvmrc`, `.python-version` y README → **divergen, hay un fallo**
 - Ningún icono oficial de marca: **monogramas estilizados** (D-01)
 - Cero secretos en el repositorio. `.env` fuera, `.env.example` dentro
 - Repositorio **público** → los datos de ejemplo son ficticios
@@ -77,46 +99,56 @@ OpenAPI es la fuente de verdad del contrato → los tipos TypeScript se generan 
 .
 ├── docs/
 │   ├── PLAN.md
-│   ├── API_CONTRACT.md            · F2
-│   ├── ARCHITECTURE.md            · F12
-│   ├── SCENE_DESIGN.md            · F2
-│   ├── PROMPT_ENGINEERING.md      · F12
-│   ├── TESTING.md                 · F12
+│   ├── API_CONTRACT.md
 │   ├── GITHUB_PROJECTS.md
-│   └── adr/
-│       ├── 0001-frontend-react-motion.md
-│       ├── 0002-escena-2.5d-sin-webgl.md
-│       └── 0003-backend-fastapi-pydantic.md
+│   ├── adr/
+│   │   ├── 0001-frontend-react-motion.md
+│   │   ├── 0002-escena-2.5d-sin-webgl.md
+│   │   └── 0003-backend-fastapi-pydantic.md
+│   └── visual/          · referencias de diseño (PNG)
 ├── frontend/
 │   ├── src/
-│   │   ├── scene/       · Backdrop, Shelf, Table, Character, CameraRig, Lighting
-│   │   ├── store/       · sceneStore, transitions, stateMachine, timings
-│   │   ├── components/  · Button, Panel, Chip, Counter, Toast
-│   │   ├── data/        · platforms.mock, generation.mock   (Fase 1, se borran en F5)
-│   │   ├── features/
-│   │   │   ├── brief/
-│   │   │   ├── result/renderers/   · un componente por tipo
-│   │   │   └── generation/
 │   │   ├── api/         · client, endpoints
-│   │   ├── types/       · contrato.ts (generado)
-│   │   ├── styles/      · tokens.css, scene.css
-│   │   ├── assets/      · character.svg, icons
-│   │   └── mocks/       · MSW (Fase 5)
+│   │   ├── components/  · Ui.tsx
+│   │   ├── data/        · platforms.ts (fallback del catálogo)
+│   │   ├── features/
+│   │   │   ├── app/     · Experience.tsx y stages/ (pantallas del recorrido)
+│   │   │   ├── platforms/ · PlatformCarousel, PlatformCard
+│   │   │   ├── brief/   · ThemeForm, ConfigForm
+│   │   │   ├── result/  · ResultView
+│   │   │   └── workspace/ · Workspace (escena previa)
+│   │   ├── scene/       · escena 2.5D conservada, fuera del recorrido
+│   │   ├── store/       · sceneStore, briefStore, generationStore, stateMachine, timings
+│   │   ├── styles/      · tokens.css, experience.css, brief.css, carousel.css, scene.css, workspace.css
+│   │   └── types/       · contract.ts (espejo del contrato, escrito a mano)
+│   ├── public/visual/   · tarjetas PNG de plataformas y storyboard
 │   ├── package.json
-│   ├── tsconfig.json
 │   └── vite.config.ts
 ├── backend/
 │   ├── app/
-│   │   ├── core/        · config, errors, logging
-│   │   ├── api/routes/  · health, platforms, examples, meta, prompt-preview, generate
-│   │   ├── domain/      · schemas, platform base + registry + 5 plataformas
-│   │   ├── services/    · generation
-│   │   └── prompts/     · system, blocks, platforms, renderer, composer, parsing
-│   ├── tests/
-│   ├── pyproject.toml
+│   │   ├── api/routes/  · generate, info
+│   │   ├── models/      · content, info
+│   │   ├── prompts/     · prompt_engine, base_rules, platform_rules
+│   │   ├── providers/   · groq_provider
+│   │   ├── data/        · examples
+│   │   └── main.py
+│   ├── tests/           · test_generate_contract, test_info_endpoints,
+│   │                     test_platform_expectations, test_prompt_engine
+│   ├── requirements.txt
 │   └── .env.example
-└── scripts/             · install.bat, run.bat, run-test.bat
+└── experiments/llm/     · pruebas sueltas de Groq/LangChain (fuera del producto)
 ```
+
+**Desviación respecto al plan.** La estructura prevista tenía un backend con capas
+`core/` (config, errors, logging), `domain/` (schemas y registro de plataformas) y
+`services/` (generation), y un `frontend/` con `data/*.mock`, `mocks/` (MSW) y
+`scripts/` (`install.bat`, `run.bat`). **Nada de eso existe.** El backend se organiza
+por responsabilidad en `api/`, `models/`, `prompts/`, `providers/` y `data/`; el
+catálogo de plataformas vive en `app/prompts/platform_rules.py`
+(`PLATFORM_EXPECTATIONS`), no en un `domain/`. El backend usa `requirements.txt`, no
+`pyproject.toml`. Los documentos `ARCHITECTURE.md`, `SCENE_DESIGN.md`,
+`PROMPT_ENGINEERING.md` y `TESTING.md` que el plan listaba en `docs/` **no se
+crearon**.
 
 ---
 
@@ -156,6 +188,10 @@ Los crea el responsable manualmente.
 ---
 
 ## 6. Roadmap — 12 días
+
+> **Nota:** esta sección conserva el calendario y el alcance **previstos** en su
+> redacción original. Para el estado realmente implementado, ver el aviso de §1, las
+> desviaciones de §2–§4 y el resumen de §9.
 
 | Día | Fecha | Contenido | Tag |
 |---|---|---|---|
@@ -250,7 +286,7 @@ El alcance original se estimaba en 18–25 días. La entrega son 12–14. Ya se 
 3. `GET /api/meta` → versión hardcodeada en la UI
 4. Ejemplos precargados
 5. Refinar el personaje → quiet estático con salto entre escenas
-6. `GET /api/health` → una ruta `/` que devuelve OK
+6. `GET /health` → una ruta `/` que devuelve OK
 7. Medium sin ejemplos de código, solo capturas y diagrama
 
 > **Punto de control duro: el día 6.** Si no hay GIF, se aplica la caja de seguridad de inmediato.
@@ -261,21 +297,36 @@ El alcance original se estimaba en 18–25 días. La entrega son 12–14. Ya se 
 
 | Método | Ruta | Propósito |
 |---|---|---|
-| GET | `/api/health` | Estado y versión |
-| GET | `/api/platforms` | 5 plataformas × 9 tipos con sus esquemas |
-| GET | `/api/examples` | Ejemplos precargados por plataforma y tipo |
-| GET | `/api/meta` | Versión de prompt, modelo, Proveedor activo |
-| GET | `/api/prompt-preview` | Vista previa del prompt sin llamar al LLM |
+| GET | `/health` | Estado del servicio (en la raíz, no bajo `/api`) |
+| GET | `/api/platforms` | 5 plataformas con sus formatos admitidos |
+| GET | `/api/examples` | Ejemplos precargados por plataforma |
+| GET | `/api/meta` | Versión, modelo, proveedor activo y versión de prompt |
+| GET | `/api/prompt-preview` | Prompt construido para un brief, sin llamar al LLM |
 | POST | `/api/generate` | Genera contenido estructurado y validado |
 | GET | `/openapi.json` | Esquema OpenAPI |
 | GET | `/docs` | Documentación interactiva |
 
-`POST /api/generate` devuelve: `content` · `metadata` (tokens, latencia, modelo,
-`prompt_version`) · `warnings` (límites de plataforma) · `suggestions`
+`POST /api/generate` devuelve: `content` (estructurado: `title`, `sections`,
+`hashtags`, `cta`) · `metadata` (modelo, `prompt_version`, `latency_ms`) ·
+`warnings` (brief incompleto y adaptación a la plataforma).
+
+> **Correcciones respecto al plan.** La ruta de salud es `/health`, **no**
+> `/api/health` (los tests verifican que `/api/health` devuelve 404). El plan preveía
+> además campos `suggestions` y `tokens` en la generación: **no existen**. El detalle
+> completo y verificado está en [`docs/API_CONTRACT.md`](API_CONTRACT.md).
 
 ---
 
 ## 9. Definition of Done
+
+> **Estado (revisión de documentación).** Implementado: backend con las rutas de §8,
+> catálogo de **5 plataformas × 9 tipos** (Instagram 3 + LinkedIn 2 + X 2 + Blog 1 +
+> Pinterest 1), prompt versionado (`PROMPT_VERSION = "1.1"`) y testeable sin LLM,
+> generación estructurada, suite de tests en ambos stacks (sin llamar al LLM real),
+> `docs/API_CONTRACT.md` como contrato y los 3 ADR. **Pendiente** (no existe en el
+> código actual): `LLMProvider` + `FakeProvider` intercambiables, prompt en 9 capas,
+> `react-router-dom`, mocks MSW, generación de tipos con `openapi-typescript`, GIF,
+> artículo de Medium, presentación, tablero cerrado y tags/release.
 
 ### Entrega
 - [ ] La app arranca localmente en un comando y la demo completa funciona
@@ -331,7 +382,7 @@ persistencia · multiusuario · modelos 3D propios
 |---|---|
 | D-01 | Iconos: monogramas estilizados SVG, cero logotipos oficiales |
 | D-02 | Router en la **Fase 5** (revisada por la fecha) |
-| D-03 | LLM: Groq, `llama-3.3-70b-versatile` |
+| D-03 | LLM: Groq, `openai/gpt-oss-20b` |
 | D-04 | Se mantiene el nombre remoto `mod3-project3-naimireth` |
 | D-05 | Kanban: **GitHub Projects** integrado en el repositorio |
 | D-06 | Repositorio **público** |

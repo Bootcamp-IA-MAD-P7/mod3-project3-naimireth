@@ -1,6 +1,9 @@
 # ADR-0001 · Frontend con React + Motion
 
 > **Estado**: Aceptada · **Fecha**: 2026-09-30 · **Fase**: F0
+>
+> *Revisión posterior:* se actualizan las versiones y la descripción de la máquina de
+> estados real. La decisión de fondo (React + Motion + Zustand) sigue vigente.
 
 ---
 
@@ -12,14 +15,18 @@ No es un CRUD con estilos.
 
 Necesitamos, por tanto:
 
-1. **Control fino del estado.** La escena es una máquina de estados con ~12 estados
-   (`intro`, `platforms`, `fetching`, `placing`, `camera-zoom`, `content-type`,
-   `brief`, `generating`, `result`, …) y transiciones que deben ser deterministas
-   y sincronizadas con animaciones en curso.
+1. **Control fino del estado.** La experiencia es una máquina de estados con
+   transiciones deterministas, sincronizadas con las animaciones en curso. La
+   implementación actual tiene **cinco escenas** (`ARRIVAL`, `SHELF_SELECTION`,
+   `THEME`, `CONFIGURATION`, `RESULT`), encadenadas hacia delante y con vuelta a la
+   anterior.
 2. **Orquestación de animaciones.** Secuencias encadenadas, springs, crossfades,
    un `layoutId` para morph y respeto a `prefers-reduced-motion`.
-3. **Un contrato de tipos exacto con el backend.** El esquema OpenAPI genera los
-   tipos TypeScript; cualquier divergencia entre ambos lados es un bug en producción.
+3. **Un contrato de tipos exacto con el backend.** El contrato se documenta en
+   `docs/API_CONTRACT.md` y se refleja en `frontend/src/types/contract.ts`; cualquier
+   divergencia entre ambos lados es un bug en producción. (El plan preveía generar
+   esos tipos desde OpenAPI con `openapi-typescript`; la implementación los escribe a
+   mano como espejo del contrato.)
 4. **Presupuesto de dependencias pequeño.** El tiempo es el recurso escaso: hay
    que llegar a la Fase 1D (producto funcionando con mocks) en el día 6.
 
@@ -36,11 +43,12 @@ Necesitamos, por tanto:
 
 ## Decisión
 
-**React 19 + Vite 7 + TypeScript `strict` + Motion 12 + Zustand 5**, con la escena
+**React 19 + Vite 8 + TypeScript `strict` + Motion 13 + Zustand 5**, con la escena
 construida en **SVG y CSS** (ver [ADR-0002](0002-escena-2.5d-sin-webgl.md)).
 
-**Cuatro dependencias de producción al arrancar**: `react`, `react-dom`, `zustand`, `motion`.
-`react-router-dom`, MSW y `openapi-typescript` llegan en la Fase 5, no antes.
+**Cuatro dependencias de producción**: `react`, `react-dom`, `zustand`, `motion`.
+`react-router-dom`, MSW y `openapi-typescript` (previstos para la Fase 5) **no se han
+añadido**; el estado real del proyecto se detalla en [`PLAN.md`](../PLAN.md).
 
 **El store es la única fuente de verdad.** Los componentes de la escena leen del store
 y no guardan estado propio de la secuencia. La animación **nunca** muta el estado:
@@ -52,7 +60,8 @@ y la secuencia completa se puede testear con las animaciones desactivadas.
 **A favor**
 - La máquina de estados es testeable sin navegador
 - `layoutId` hace el morph del icono al workspace del producto
-- Los tipos generados de OpenAPI convierten el contrato en algo verificable en el build
+- El contrato verificado (`docs/API_CONTRACT.md` + `types/contract.ts`) mantiene
+  alineados frontend y backend, aunque sin generación automática desde OpenAPI
 - Motion gestiona `prefers-reduced-motion` de forma declarativa
 
 **En contra**
@@ -61,5 +70,6 @@ y la secuencia completa se puede testear con las animaciones desactivadas.
 - `bundle size` mayor que con vanilla, irrelevante para una app local de una sola página
 
 **Implicaciones de la fecha**
-- Se descartó `react-router-dom` en la Fase 1D → **Fase 5** (D-02 revisada)
+- `react-router-dom` se difirió de la Fase 1D a la **Fase 5** (D-02 revisada); a día
+  de hoy **no se ha añadido**
 - Playwright E2E se eliminó del alcance. Se sustituye por QA manual con checklist
