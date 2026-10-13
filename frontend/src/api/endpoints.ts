@@ -12,6 +12,7 @@ import type {
   GenerateRequest,
   GenerateResponse,
   PlatformsResponse,
+  PromptPreviewResponse,
 } from '../types/contract';
 
 /** `GET /api/platforms` · catálogo de plataformas y formatos admitidos. */
@@ -27,6 +28,24 @@ export function getExamples(signal?: AbortSignal): Promise<ExamplesResponse> {
 /** `GET /api/meta` · metadatos de la API (sin datos sensibles). */
 export function getMeta(signal?: AbortSignal): Promise<ApiMeta> {
   return request<ApiMeta>('/api/meta', { signal });
+}
+
+/** `GET /api/prompt-preview` · el prompt que usaría `/api/generate`,
+ *  sin llamar al LLM. Los siete campos del brief se pasan por la URL. */
+export function getPromptPreview(
+  brief: GenerateRequest,
+  signal?: AbortSignal,
+): Promise<PromptPreviewResponse> {
+  const params = new URLSearchParams({
+    platform: brief.platform,
+    topic: brief.topic,
+    audience: brief.audience,
+    content_type: brief.content_type,
+    tone: brief.tone,
+    objective: brief.objective,
+    brand_context: brief.brand_context,
+  });
+  return request<PromptPreviewResponse>(`/api/prompt-preview?${params.toString()}`, { signal });
 }
 
 /** `POST /api/generate` · generación real con el LLM. */

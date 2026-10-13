@@ -143,6 +143,87 @@
   color: #b9b2da;
 }
 
+/* ── Vista previa del prompt (Fase 2) ─────────────────────────── */
+
+.brief__preview {
+  display: grid;
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.brief__preview-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-ui-lilac);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.brief__preview-toggle:hover:not(:disabled) {
+  color: var(--c-ui-coral);
+}
+
+.brief__preview-toggle:disabled {
+  opacity: 0.5;
+}
+
+.brief__preview-caret {
+  font-size: 0.7rem;
+  margin-left: auto;
+}
+
+.brief__preview-body {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.brief__preview-meta {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: #9a92c2;
+}
+
+.brief__preview-block {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.brief__preview-role {
+  width: fit-content;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--r-full);
+  background: rgb(109 79 176 / 35%);
+  color: var(--c-ui-lilac);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.brief__preview-pre {
+  margin: 0;
+  padding: var(--sp-4);
+  overflow-x: auto;
+  border-radius: var(--r-md);
+  border: 1px solid rgb(255 255 255 / 12%);
+  background: rgb(6 12 28 / 62%);
+  color: var(--c-ui-cream);
+  font-family: Consolas, Menlo, monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .brief__missing {
   font-size: 0.82rem;
   color: var(--c-ui-coral);

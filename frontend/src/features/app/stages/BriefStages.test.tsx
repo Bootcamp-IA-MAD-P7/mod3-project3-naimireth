@@ -102,7 +102,7 @@ describe('el formulario de Configuración (ConfigStageForm)', () => {
     expect(marcado).toContain('Completa: tono, objetivo.');
   });
 
-  it('muestra «Generando…» y bloquea mientras carga', () => {
+it('muestra «Generando…» y bloquea mientras carga', () => {
     const marcado = html(
       <ConfigStageForm
         values={vacio()}
@@ -116,6 +116,25 @@ describe('el formulario de Configuración (ConfigStageForm)', () => {
       />,
     );
     expect(marcado).toContain('Generando…');
+  });
+
+  it('trae la vista previa del prompt colapsada por defecto, sin contenido del prompt', () => {
+    const marcado = html(
+      <ConfigStageForm
+        values={vacio()}
+        platformName="Instagram"
+        contentTypeOptions={['caption']}
+        loading={false}
+        missing={[]}
+        onChange={() => undefined}
+        onSubmit={() => undefined}
+        onBack={() => undefined}
+      />,
+    );
+    expect(marcado).toContain('brief__preview');
+    expect(marcado).toContain('Ver vista previa del prompt');
+    expect(marcado).toContain('aria-expanded="false"');
+    expect(marcado).not.toContain('<pre');
   });
 });
 

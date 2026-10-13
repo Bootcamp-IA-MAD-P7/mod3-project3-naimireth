@@ -8,6 +8,7 @@
  * en éxito la máquina avanza a RESULT. Presentacional.
  */
 import type { GenerateRequest } from '../../../../types/contract';
+import { PromptPreview } from './PromptPreview';
 
 interface ConfigStageFormProps {
   values: GenerateRequest | null;
@@ -123,6 +124,8 @@ export function ConfigStageForm({
           )}
         </button>
       </div>
+
+      {v && <PromptPreview brief={v} disabled={loading} />}
 
       {missing.length > 0 && (
         <span className="brief__missing">Completa: {missing.join(', ')}.</span>
