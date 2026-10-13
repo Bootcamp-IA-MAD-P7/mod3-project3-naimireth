@@ -88,6 +88,20 @@ export interface ApiMeta {
   documentation: string;
 }
 
+/** `PromptPreviewMessage` · un mensaje del prompt (mismo `build_prompt`). */
+export interface PromptPreviewMessage {
+  role: string;
+  content: string;
+}
+
+/** `GET /api/prompt-preview` · vista previa del prompt, sin llamar al LLM. */
+export interface PromptPreviewResponse {
+  platform: string;
+  prompt_version: string;
+  model: string;
+  messages: PromptPreviewMessage[];
+}
+
 /** Error del backend FastAPI: `{"detail": ...}`. */
 export interface ApiErrorBody {
   detail?: unknown;
