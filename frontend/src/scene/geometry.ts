@@ -11,9 +11,10 @@
  * estimation ni ojo clínico: son medidas. Lo único estimado son los
  * anclajes de abajo, y están marcados como tales.
  *
- * El mundo mide lo mismo que la placa del estudio, 1702 × 924. Eso es
- * deliberado: al ser 1:1, los recortes de la hoja de poses se usan a
- * su tamaño nativo y no hay que inventar ninguna escala.
+ * El mundo mide lo mismo que la placa activa: la placa del estudio
+ * (1702 × 924) en los planos de estudio y la base de tablet (1671 × 941)
+ * en los planos de tablet. Eso es deliberado: al ser 1:1, los recortes
+ * se usan a su tamaño nativo y no hay que inventar ninguna escala.
  */
 
 export interface AssetInfo {
@@ -40,8 +41,62 @@ export const WORKSPACE_PLATE: AssetInfo = {
   h: 924,
 };
 
-/** 03 · la estantería con las cinco plataformas. */
-export const SHELF: AssetInfo = { src: `${VISUAL}/03_platform-shelf.png`, w: 395, h: 240 };
+/**
+ * Base de las fases de tablet (Tema, Configuración, Resultado).
+ *
+ * Es un render de estudio con tablet (1671 × 941), distinto de la placa
+ * 02: la cámara viaja hasta la mesa y aquí vive el formulario dentro de
+ * la pantalla. `src` va codificado porque el nombre contiene espacios.
+ */
+export const TABLET_PLATE: AssetInfo = {
+  src: `${VISUAL}/Estudio%20creativo%20con%20tablet%20en%20blanco.png`,
+  w: 1671,
+  h: 941,
+};
+
+/**
+ * Rectángulo de la pantalla de la tablet DENTRO de `TABLET_PLATE`,
+ * medido con scripts en `%TEMP%\opencode\` (sd de luminancia entre el
+ * render en blanco y los de interfaz: lo único que cambia es la
+ * pantalla). El mundo de las fases de tablet es la placa al completo,
+ * así que estas coordenadas son las mismas que usa la cámara.
+ */
+export const TABLET_SCREEN = {
+  x: 994,
+  y: 378,
+  w: 322,
+  h: 378,
+} as const;
+
+/** Punto de enfoque de la cámara en las fases de tablet: el centro de
+ *  la pantalla, donde se monta el formulario. */
+export function tabletScreenCenter(): { x: number; y: number } {
+  return {
+    x: TABLET_SCREEN.x + TABLET_SCREEN.w / 2,
+    y: TABLET_SCREEN.y + TABLET_SCREEN.h / 2,
+  };
+}
+
+/** Las fases que usan la tablet como base. */
+export function isTabletScene(scene: string): boolean {
+  return scene === 'THEME' || scene === 'CONFIGURATION' || scene === 'RESULT';
+}
+
+/**
+ * 03 · la estantería con las cinco plataformas.
+ *
+ * El asset original (`03_platform-shelf.png`) no existe en
+ * `public/visual`, y ninguno de los assets que sí existen (los seis
+ * renders de escena completa) es un recorte de balda: no se puede
+ * colgar una imagen de estantería encima de la placa. Por eso la balda
+ * se compone: cinco tokens con los monogramas propios de
+ * `data/platforms.ts` (ADR-0002), dibujados sobre el ancla de
+ * `STAGE.estanteria` con HTML/CSS/SVG.
+ *
+ * `w` y `h` conservan la huella del mueble original para que los
+ * anclajes, la cámara y las zonas clicables no se descuadren.
+ */
+export const SHELF: Pick<AssetInfo, 'w' | 'h'> = { w: 395, h: 240 };
 
 /** 01 · hoja de referencia del personaje. Reservada como guía de arte. */
 export const CHARACTER_SHEET: AssetInfo = {
@@ -206,19 +261,19 @@ export function platformBoxes(ancho: number, alto: number): PlatformBox[] {
  * Las siete poses se recorren en orden narrativo, que es como están
  * en la hoja. El orden exacto de cada fase se confirma mirando el
  * navegador: se cambia aquí y en ningún otro sitio.
+ *
+ * El personaje está desactivado en esta iteración (CharacterSprite
+ * devuelve null), así que el mapa solo conserva las fases visibles.
  */
 
 export const POSE_POR_FASE = {
   ARRIVAL: 0,
   SHELF_SELECTION: 0,
-  CHARACTER_MOVING: 1,
-  PLATFORM_SELECTED: 4,
 } as const;
 
 /**
- * Poses que encadenan el paseo. Se recorren en bucle mientras la chica
- * se desplaza, y al llegar se queda con la pose de `PLATFORM_SELECTED`:
- * caminar → llegar → tomar.
+ * Poses que encadenan el paseo, por si el personaje vuelve. Se recorren
+ * en bucle mientras se desplaza: caminar → llegar → tomar.
  */
 export const WALK_POSES = [1, 2, 3] as const;
 

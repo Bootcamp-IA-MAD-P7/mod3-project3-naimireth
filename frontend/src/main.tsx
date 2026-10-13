@@ -4,6 +4,10 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import './styles/tokens.css';
 import './styles/scene.css';
+import './styles/workspace.css';
+import './styles/carousel.css';
+import './styles/experience.css';
+import './styles/brief.css';
 
 const root = document.getElementById('root');
 

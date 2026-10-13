@@ -92,15 +92,6 @@ body {
   will-change: transform;
 }
 
-/* Velo único para separar el fondo. Nunca un filtro por capa: los
-   assets son imágenes y un filtro por elemento las ensucia. */
-.scene__veil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(120% 90% at 40% 40%, transparent 20%, rgb(10 26 30 / 62%) 100%);
-}
-
 /* ── 02 · la placa del estudio ────────────────────────────────── */
 
 .plate {
@@ -193,14 +184,91 @@ body {
 
 /* ── 03 · la estantería ──────────────────────────────────────── */
 
-.shelf__art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* La imagen es opaca: sin suavizado de bordes, el recorte se leería
-     como un rectángulo pegado encima de la habitación. */
+/* La balda compuesta: contenedor de los tokens, a tamaño completo. */
+.shelf__board {
+  position: absolute;
+  inset: 0;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+/* Cada token ocupa su columna de la balda. El color de marca viene del
+   atributo `style` (`data-platforms`). El monograma se centra y el
+   hueco inferior deja sitio para el nombre bajo el glifo. */
+.token {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-platform-instagram);
+}
+
+.token__mono {
+  display: grid;
+  place-items: center;
+  width: 58%;
+  aspect-ratio: 1;
+  border-radius: 18%;
+  background: currentColor;
+  box-shadow: 0 6px 14px rgb(20 10 6 / 35%), inset 0 0 0 1px rgb(255 255 255 / 14%);
+}
+
+/* Glifos propios, sin SVG ni logotipos (ADR-0002). */
+.token__mono--ring::before {
+  content: '';
+  width: 46%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: inset 0 0 0 3px currentColor, 6px 6px 0 -5px #fff;
+}
+
+.token__mono--in::before {
+  content: 'in';
+  color: #fff;
+  font: 700 56%/1.05 var(--font-display, system-ui, sans-serif);
+  letter-spacing: -0.04em;
+}
+
+.token__mono--x::before {
+  content: 'x';
+  color: #fff;
+  font: 800 62%/1 var(--font-display, system-ui, sans-serif);
+}
+
+.token__mono--article::before {
+  content: '';
+  width: 42%;
+  aspect-ratio: 0.78;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, transparent 0 42%, #fff 42% 52%, transparent 52% 100%),
+    linear-gradient(180deg, transparent 0 58%, #fff 58% 68%, transparent 68% 100%);
+  background-size: 100% 100%;
+  box-shadow: 0 3px 0 -1px #fff inset, 0 -3px 0 -1px #fff inset;
+}
+
+.token__mono--p::before {
+  content: 'p';
+  color: #fff;
+  font: 800 62%/1 var(--font-display, system-ui, sans-serif);
+}
+
+.token[data-platform='linkedin'] {
+  color: var(--c-platform-linkedin);
+}
+
+.token[data-platform='x'] {
+  color: var(--c-platform-x);
+}
+
+.token[data-platform='blog'] {
+  color: var(--c-platform-blog);
+}
+
+.token[data-platform='pinterest'] {
+  color: var(--c-platform-pinterest);
 }
 
 .shelf__hits {
@@ -377,28 +445,6 @@ body {
   color: #cfe0e0;
 }
 
-.ui__dock {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: var(--sp-6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--sp-2);
-  pointer-events: none;
-}
-
-.ui__pill {
-  margin: 0;
-  padding: 0.55rem 1.1rem;
-  border-radius: var(--r-full);
-  background: rgb(8 24 28 / 78%);
-  border: 1px solid rgb(255 255 255 / 12%);
-  color: #eef6f6;
-  font-size: 0.9rem;
-}
-
 .ui__dot {
   display: inline-block;
   width: 0.6rem;
@@ -406,30 +452,6 @@ body {
   margin-right: 0.5rem;
   border-radius: 50%;
   vertical-align: -1px;
-}
-
-.ui__phase {
-  position: absolute;
-  right: var(--sp-5);
-  bottom: var(--sp-5);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--r-full);
-  background: rgb(8 24 28 / 62%);
-  color: #cfe0e0;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.ui__pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--c-secondary-soft);
-  box-shadow: 0 0 8px var(--c-secondary-soft);
 }
 
 .btn {

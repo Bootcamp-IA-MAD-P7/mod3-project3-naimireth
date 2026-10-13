@@ -1,0 +1,346 @@
+/* TRAZO · experiencia principal (rediseño visual).
+ *
+ * El punto de entrada ya no es la escena antigua: cada fase es una
+ * pantalla editorial completa sobre el fondo geométrico nuevo, con la
+ * paleta de interfaz de `tokens.css` (azul marino, índigo, violeta,
+ * lila, rosa coral y crema). La composición se construye con formas
+ * de Motion y capas CSS —no con una imagen usada como pantalla—.
+ *
+ * El documento ya no pinta la mezcla petróleo de la escena antigua:
+ * body se reencuadra al navy y la experiencia cubre todo el viewport.
+ */
+
+body {
+  background: var(--c-ui-navy);
+}
+
+/* ── Lienzo de la experiencia ────────────────────────────────── */
+
+.experience {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ui);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 12% 6%, #26336e 0%, transparent 55%),
+    radial-gradient(130% 100% at 92% 100%, #4b2f7a 0%, transparent 52%),
+    linear-gradient(155deg, var(--c-ui-navy) 0%, #181f45 55%, #232c61 100%);
+}
+
+.experience__canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Rejilla editorial muy sutil, desvanecida hacia abajo. */
+.experience__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgb(185 163 227 / 13%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(185 163 227 / 13%) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(130% 110% at 50% 0%, #000 28%, transparent 78%);
+}
+
+/* Masas de color: violeta, rosa coral y lila, difuminadas. */
+.experience__blob {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+
+.experience__blob--a {
+  top: -12%;
+  right: -8%;
+  background: radial-gradient(circle at 40% 40%, var(--c-ui-violet), var(--c-ui-indigo) 78%);
+  opacity: 0.55;
+}
+
+.experience__blob--b {
+  bottom: -20%;
+  left: -10%;
+  background: radial-gradient(circle at 60% 50%, var(--c-ui-rose), #3b1e5e 80%);
+  opacity: 0.5;
+}
+
+.experience__blob--c {
+  top: 34%;
+  left: 22%;
+  width: 28vmax;
+  height: 28vmax;
+  background: radial-gradient(circle at 50% 50%, var(--c-ui-coral), transparent 78%);
+  opacity: 0.24;
+}
+
+/* La pantalla de selección tiene el carrusel de protagonista: el fondo
+   baja la intensidad para no competir con las tarjetas. */
+.experience__canvas--calm .experience__blob {
+  opacity: 0.28;
+}
+
+.experience__canvas--calm .experience__grid {
+  opacity: 0.55;
+}
+
+/* Acentos geométricos: anillo, punto y triángulo. */
+.experience__accent {
+  position: absolute;
+  pointer-events: none;
+}
+
+.experience__accent--ring {
+  top: -14vmin;
+  right: -10vmin;
+  width: 48vmin;
+  height: 48vmin;
+  border-radius: 50%;
+  border: 1px solid rgb(185 163 227 / 32%);
+  animation: trazo-spin 70s linear infinite;
+}
+
+.experience__accent--ring::before {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  border: 1px dashed rgb(185 163 227 / 36%);
+}
+
+.experience__accent--ring::after {
+  content: '';
+  position: absolute;
+  inset: 38%;
+  border-radius: 50%;
+  background: rgb(255 143 107 / 55%);
+  box-shadow: 0 0 40px rgb(255 143 107 / 50%);
+}
+
+.experience__accent--dot {
+  bottom: 12vh;
+  left: 9vw;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c-ui-lilac);
+  box-shadow: 0 0 30px rgb(185 163 227 / 65%);
+}
+
+.experience__accent--tri {
+  top: 18vh;
+  left: 18vw;
+  width: 0;
+  height: 0;
+  border-left: 22px solid transparent;
+  border-bottom: 38px solid rgb(255 143 107 / 50%);
+  transform: rotate(-14deg);
+}
+
+@keyframes trazo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Pantallas de fase ────────────────────────────────────────── */
+
+.stage-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+
+/* ── Bienvenida ──────────────────────────────────────────────── */
+
+.welcome {
+  position: relative;
+  max-width: 47rem;
+  display: grid;
+  gap: var(--sp-4);
+  justify-items: center;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.welcome__emblem {
+  position: relative;
+  width: 5.25rem;
+  height: 5.25rem;
+  margin-bottom: var(--sp-1);
+}
+
+.welcome__emblem-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--c-ui-coral);
+  animation: trazo-spin 26s linear infinite;
+}
+
+.welcome__emblem-ring::before {
+  content: '';
+  position: absolute;
+  inset: 16%;
+  border-radius: 50%;
+  border: 1px dashed rgb(185 163 227 / 85%);
+}
+
+.welcome__emblem-core {
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, var(--c-ui-lilac), var(--c-ui-violet) 58%, var(--c-ui-indigo));
+  box-shadow: 0 0 34px rgb(109 79 176 / 65%);
+}
+
+.welcome__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--c-ui-lilac);
+}
+
+.welcome__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 6.5vw, 5rem);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: var(--c-ui-cream);
+  text-shadow: 0 14px 44px rgb(5 10 24 / 48%);
+}
+
+.blurtext__unit {
+  display: inline-block;
+  white-space: pre;
+}
+
+.welcome__lead {
+  margin: 0;
+  max-width: 33rem;
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  line-height: 1.6;
+  color: #c6c3e8;
+}
+
+.welcome__cta {
+  margin-top: var(--sp-2);
+}
+
+.btn--start {
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  background: linear-gradient(135deg, var(--c-ui-coral) 0%, #e05a22 100%);
+  color: var(--c-ui-cream);
+  box-shadow: 0 12px 28px -10px rgb(224 90 34 / 70%);
+}
+
+.welcome__cta-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: #b9b2da;
+}
+
+/* ── Definición local de la tarjeta con luz (SpotlightCard) ───── */
+
+.spotlight {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: var(--c-ui-glass);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 30px 60px -30px rgb(4 8 20 / 72%);
+}
+
+.spotlight__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.spotlight__body {
+  position: relative;
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  padding: var(--sp-5) var(--sp-6);
+}
+
+/* ── Fases siguientes (superficie mínima de transición) ───────── */
+
+.placeholder {
+  position: relative;
+  max-width: 30rem;
+  display: grid;
+  gap: var(--sp-4);
+  justify-items: center;
+  text-align: center;
+  pointer-events: auto;
+}
+
+.placeholder__ring {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  border: 1px solid rgb(255 143 107 / 55%);
+  animation: trazo-spin 30s linear infinite;
+}
+
+.placeholder__ring::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  transform: scale(0.45);
+  background: radial-gradient(circle at 40% 35%, var(--c-ui-lilac), var(--c-ui-violet) 70%);
+}
+
+.placeholder__stage {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--c-ui-lilac);
+}
+
+.placeholder__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  color: var(--c-ui-cream);
+}
+
+.placeholder__note {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #b9b2da;
+}
+
+/* ── Preferencias del sistema ─────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .experience__accent--ring,
+  .experience__accent--ring::before,
+  .experience__blob,
+  .welcome__emblem-ring,
+  .placeholder__ring {
+    animation: none;
+  }
+}

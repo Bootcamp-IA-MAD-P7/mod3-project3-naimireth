@@ -19,14 +19,18 @@ import {
   SPRITE,
   SPRITE_CELL_COUNT,
   STAGE,
+  TABLET_PLATE,
+  TABLET_SCREEN,
   WALK_POSES,
   POSE_POR_FASE,
+  isTabletScene,
   platformBoxes,
   poseHeight,
   shelfBaseY,
   shelfCenter,
   spriteCell,
   spriteCellStyle,
+  tabletScreenCenter,
   walkTargetX,
 } from './geometry';
 
@@ -38,8 +42,16 @@ describe('la placa del estudio', () => {
 
   it('se sirve desde los assets visuales, no desde una ruta inventada', () => {
     expect(PLATE.src).toBe('/visual/02_studio-scene.png');
-    expect(SHELF.src).toBe('/visual/03_platform-shelf.png');
     expect(SPRITE.src).toBe('/visual/05_character-actions.png');
+  });
+
+  it('la estantería ya no es una imagen: se compone con tokens', () => {
+    // `03_platform-shelf.png` no existe en public/visual y los assets
+    // que sí existen son escenas completas, no recortes de balda. La
+    // balda conserva su huella (w/h) pero ya no apunta a un PNG.
+    expect('src' in SHELF).toBe(false);
+    expect(SHELF.w).toBeGreaterThan(0);
+    expect(SHELF.h).toBeGreaterThan(0);
   });
 
   it('el mundo es 1:1 con la placa, así que la imagen no se estira', () => {
@@ -104,7 +116,7 @@ describe('la hoja de poses del personaje', () => {
 });
 
 describe('la estantería', () => {
-  it('es 395 x 240, el tamaño real de 03_platform-shelf.png', () => {
+  it('conserva la huella del mueble original, 395 x 240', () => {
     expect(SHELF.w).toBe(395);
     expect(SHELF.h).toBe(240);
   });
@@ -171,8 +183,9 @@ describe('las poses del paseo', () => {
     }
   });
 
-  it('la pose de llegada es distinta de la de tomar', () => {
-    expect(POSE_POR_FASE.ARRIVAL).not.toBe(POSE_POR_FASE.PLATFORM_SELECTED);
+  it('la pose de llegada es la misma en los planos del estudio', () => {
+    expect(POSE_POR_FASE.ARRIVAL).toBe(0);
+    expect(POSE_POR_FASE.SHELF_SELECTION).toBe(0);
   });
 });
 
@@ -235,5 +248,40 @@ describe('la línea del suelo está medida, no supuesta', () => {
     const mitad = (SHELF.w * STAGE.estanteria.escala) / 2;
     expect(walkTargetX()).toBeLessThan(STAGE.estanteria.x - mitad);
     expect(walkTargetX()).toBeGreaterThan(STAGE.personaje.x - 400);
+  });
+});
+
+describe('la base de tablet', () => {
+  it('mide 1671 x 941, el tamaño real del render en blanco', () => {
+    expect(TABLET_PLATE.w).toBe(1671);
+    expect(TABLET_PLATE.h).toBe(941);
+  });
+
+  it('se sirve desde los assets visuales con el nombre codificado', () => {
+    expect(TABLET_PLATE.src).toBe(
+      '/visual/Estudio%20creativo%20con%20tablet%20en%20blanco.png',
+    );
+  });
+
+  it('el rectángulo de pantalla cae dentro de la base y es vertical', () => {
+    expect(TABLET_SCREEN.x).toBeGreaterThanOrEqual(0);
+    expect(TABLET_SCREEN.y).toBeGreaterThanOrEqual(0);
+    expect(TABLET_SCREEN.x + TABLET_SCREEN.w).toBeLessThanOrEqual(TABLET_PLATE.w);
+    expect(TABLET_SCREEN.y + TABLET_SCREEN.h).toBeLessThanOrEqual(TABLET_PLATE.h);
+    expect(TABLET_SCREEN.h).toBeGreaterThan(TABLET_SCREEN.w);
+  });
+
+  it('el centro de la pantalla es el que usa la cámara', () => {
+    const centro = tabletScreenCenter();
+    expect(centro.x).toBe(TABLET_SCREEN.x + TABLET_SCREEN.w / 2);
+    expect(centro.y).toBe(TABLET_SCREEN.y + TABLET_SCREEN.h / 2);
+  });
+
+  it('THEME/CONFIGURATION/RESULT viven en la tablet', () => {
+    expect(isTabletScene('THEME')).toBe(true);
+    expect(isTabletScene('CONFIGURATION')).toBe(true);
+    expect(isTabletScene('RESULT')).toBe(true);
+    expect(isTabletScene('ARRIVAL')).toBe(false);
+    expect(isTabletScene('SHELF_SELECTION')).toBe(false);
   });
 });

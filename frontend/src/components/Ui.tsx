@@ -1,9 +1,10 @@
 /**
- * TRAZO · interfaz sobre la escena.
+ * TRAZO · interfaz sobre la escena (Etapa 2 · experiencia B I S C).
  *
- * PRIORIDAD 1 y 8 · lo mínimo indispensable: el botón Iniciar, una
- * indicación de qué hacer, el rótulo de la plataforma y una píldora de
- * fase. Nada de paneles, barras laterales ni tarjetas: eso convertiría
+ * PRIORIDAD 1 y 8 · lo mínimo indispensable. El paso del estudio a la
+ * estantería y de ahí a la tablet lo cuenta la cámara, no la interfaz:
+ * aquí solo vive la portada de ARRIVAL con el botón Iniciar. No hay
+ * píldoras de fase, ni rótulos, ni tarjetas flotantes: eso convertiría
  * el estudio en un dashboard.
  *
  * No hay logotipo ni texto sobre la pared (referencia 02).
@@ -14,29 +15,22 @@
  */
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 
-import { getPlatform } from '../data/platforms';
-import { PHASE_LABEL } from '../store/stateMachine';
+import { PlatformCarousel } from '../features/platforms/PlatformCarousel';
 import { TIMINGS } from '../store/timings';
 import { useSceneStore } from '../store/sceneStore';
 
 export function Ui() {
   const scene = useSceneStore((s) => s.scene);
-  const selected = useSceneStore((s) => s.selected);
   const begin = useSceneStore((s) => s.begin);
   const reduced = useReducedMotion();
-
-  const carrying = selected ? getPlatform(selected) : null;
-
-  const showIntro = scene === 'ARRIVAL';
-  const showCarrying = carrying !== null && scene === 'CHARACTER_MOVING';
 
   return (
     <div className="ui">
       {/* ── Portada ───────────────────────────────────────────
-          Se retira al pulsar Iniciar: el estudio nunca se queda con
-          un panel encima.                                         */}
+          Solo en ARRIVAL. Se retira al pulsar Iniciar: el estudio
+          nunca se queda con un panel encima.                        */}
       <AnimatePresence>
-        {showIntro && (
+        {scene === 'ARRIVAL' && (
           <div className="ui__center" key="intro">
             <motion.div
               className="ui__card"
@@ -74,53 +68,12 @@ export function Ui() {
         )}
       </AnimatePresence>
 
-      {/* Indicación de la acción, solo mientras las plataformas están
-          en primer plano. */}
-      <div className="ui__dock">
-        <AnimatePresence>
-          {scene === 'SHELF_SELECTION' && (
-            <motion.p
-              key="hint"
-              className="ui__pill"
-              initial={reduced ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduced ? undefined : { opacity: 0, y: -8 }}
-              transition={{ duration: reduced ? 0 : 0.4 }}
-            >
-              Elige una plataforma de la estantería
-            </motion.p>
-          )}
-        </AnimatePresence>
-
-        {/* Rótulo de la plataforma que lleva: es una etiqueta, no un
-            panel. */}
-        <AnimatePresence>
-          {showCarrying && carrying && (
-            <motion.div
-              key="carrying"
-              className="ui__pill"
-              initial={reduced ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduced ? undefined : { opacity: 0, y: -8 }}
-              transition={{ duration: reduced ? 0 : 0.35 }}
-            >
-              <span className="ui__dot" style={{ background: carrying.color }} />
-              {carrying.name}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* ── Plataforma elegida ────────────────────────────────
-          Sin panel: el cambio visual lo aporta la propia plataforma
-          resaltada en la balda. El workspace llega en F01D y la salida
-          se decide entonces, así que aquí no se añade nada.          */}
-
-      {/* Píldora de fase, discreta */}
-      <div className="ui__phase">
-        <span className="ui__pulse" />
-        {PHASE_LABEL[scene]}
-      </div>
+      {/* ── Carrusel de plataformas ──────────────────────────────
+          Solo en SHELF_SELECTION, una vez la cámara llegó a la balda.
+          Sustituye a los tokens clicables como forma de elegir.       */}
+      <AnimatePresence>
+        {scene === 'SHELF_SELECTION' && <PlatformCarousel key="carousel" />}
+      </AnimatePresence>
     </div>
   );
 }
