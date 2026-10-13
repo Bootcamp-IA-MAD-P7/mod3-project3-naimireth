@@ -1,0 +1,255 @@
+/* TRAZO · pantallas del brief (Etapa 3 · rediseño conectado al
+ * backend).
+ *
+ * Tema, Configuración y Resultado son pantallas propias sobre el fondo
+ * geométrico de `experience.css`, con la paleta de interfaz de
+ * `tokens.css`. El formulario vive dentro de un panel de cristal
+ * (identidad de las pantallas del rediseño); el resultado se compone
+ * por partes, nunca como bloque de texto indiferenciado.
+ */
+
+/* ── Panel de las pantallas del brief ─────────────────────────── */
+
+.brief {
+  width: min(94vw, 34rem);
+  max-height: calc(100vh - var(--sp-8) * 2);
+  overflow-y: auto;
+  display: grid;
+  gap: var(--sp-5);
+  padding: var(--sp-7);
+  border-radius: var(--r-xl);
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: var(--c-ui-glass);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 60px -30px rgb(4 8 20 / 72%);
+  text-align: left;
+}
+
+.brief__kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--c-ui-lilac);
+}
+
+.brief__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 4.2vw, 2.5rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: var(--c-ui-cream);
+}
+
+/* ── Explicaciones y chips de ejemplo ─────────────────────────── */
+
+.brief__examples {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.brief__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.brief__chip {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--r-full);
+  border: 1px solid rgb(185 163 227 / 45%);
+  background: transparent;
+  color: var(--c-ui-lilac);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.brief__chip:hover:not(:disabled) {
+  border-color: var(--c-ui-coral);
+  color: var(--c-ui-coral);
+}
+
+.brief__chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Campos del formulario ────────────────────────────────────── */
+
+.brief__form {
+  gap: var(--sp-4);
+}
+
+.brief__field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.brief__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-ui-lilac);
+}
+
+.brief__input,
+.brief__select,
+.brief__textarea {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--r-md);
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: rgb(6 12 28 / 62%);
+  color: var(--c-ui-cream);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.brief__textarea {
+  resize: vertical;
+}
+
+.brief__input:focus-visible,
+.brief__select:focus-visible,
+.brief__textarea:focus-visible {
+  outline: 2px solid var(--c-ui-coral);
+  outline-offset: 1px;
+}
+
+.brief__input:disabled,
+.brief__select:disabled,
+.brief__textarea:disabled {
+  opacity: 0.6;
+}
+
+/* ── Acciones, faltantes y errores ────────────────────────────── */
+
+.brief__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-top: var(--sp-2);
+}
+
+.brief__hint {
+  font-size: 0.82rem;
+  color: #b9b2da;
+}
+
+.brief__missing {
+  font-size: 0.82rem;
+  color: var(--c-ui-coral);
+}
+
+.brief__error {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--c-ui-coral);
+}
+
+.brief__state {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--c-ui-lilac);
+}
+
+/* ── Resultado estructurado ───────────────────────────────────── */
+
+.brief__result {
+  width: min(94vw, 40rem);
+}
+
+.brief__result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+}
+
+.brief__result-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3.4vw, 2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--c-ui-cream);
+}
+
+.brief__sections {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.brief__section {
+  padding-left: var(--sp-4);
+  border-left: 2px solid rgb(255 143 107 / 55%);
+}
+
+.brief__heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--c-ui-lilac);
+}
+
+.brief__text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--c-ui-cream);
+  white-space: pre-wrap;
+}
+
+.brief__hashtags {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.brief__hashtag {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--r-full);
+  background: rgb(109 79 176 / 30%);
+  color: var(--c-ui-lilac);
+  font-size: 0.82rem;
+}
+
+.brief__cta {
+  margin: 0;
+  font-weight: 700;
+  color: var(--c-ui-coral);
+}
+
+.brief__warnings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.brief__warning {
+  font-size: 0.82rem;
+  color: #b9b2da;
+}
+
+.brief__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: 1px solid rgb(255 255 255 / 12%);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: #9a92c2;
+}

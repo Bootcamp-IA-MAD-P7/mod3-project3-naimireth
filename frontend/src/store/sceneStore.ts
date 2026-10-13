@@ -1,29 +1,41 @@
 /**
- * TRAZO · store de la escena (F01A + F01B).
+ * TRAZO · store de la escena (Etapa 2 · experiencia B I S C).
  *
  * Única fuente de verdad. Ningún componente guarda el estado de la
- * secuencia: leen del store y notifican el final de sus animaciones.
- * Ver ADR-0001.
+ * secuencia: leen del store y notifican el avance (ADR-0001). El viaje
+ * es ARRIVAL → SHELF_SELECTION → THEME → CONFIGURATION → RESULT, con
+ * «Atrás» permitido y determinista: los componentes deciden cuándo.
  */
 import { create } from 'zustand';
 
-import { INITIAL_SCENE, type Scene, canTransition, nextScene } from './stateMachine';
+import {
+  INITIAL_SCENE,
+  type Scene,
+  canTransition,
+  nextScene,
+  previousScene,
+} from './stateMachine';
 import type { PlatformId } from '../data/platforms';
 
 interface SceneState {
   scene: Scene;
   /** Plataforma elegida, o `null` si aún no se ha elegido. */
   selected: PlatformId | null;
-  /** `true` mientras la cámara o la chica se desplazan: bloquea el clic. */
+  /** `true` mientras la cámara viaja: bloquea el clic. */
   moving: boolean;
 
   /** Botón Iniciar: `ARRIVAL` → `SHELF_SELECTION`. */
   begin: () => boolean;
 
-  /** Elegir plataforma: → `CHARACTER_MOVING`. */
+  /** Elegir plataforma en la estantería: → `THEME`. */
   select: (id: PlatformId) => boolean;
-  arrive: () => boolean;
-  pick: () => boolean;
+
+  /** Avanzar al siguiente plano del guion. */
+  next: () => boolean;
+
+  /** Volver al plano anterior. */
+  previous: () => boolean;
+
   reset: () => void;
   setMoving: (moving: boolean) => void;
 }
@@ -35,11 +47,11 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
 
   begin: () => {
     const { scene } = get();
-    const next = nextScene(scene);
-    if (!next || !canTransition(scene, next)) {
+    const target = nextScene(scene);
+    if (!target || !canTransition(scene, target)) {
       return false;
     }
-    set({ scene: next, moving: false });
+    set({ scene: target, moving: false });
     return true;
   },
 
@@ -48,12 +60,30 @@ export const useSceneStore = create<SceneState>()((set, get) => ({
     if (scene !== 'SHELF_SELECTION' || moving) {
       return false;
     }
-    set({ scene: 'PLATFORM_SELECTED', selected: id, moving: false });
+    set({ scene: 'THEME', selected: id, moving: false });
     return true;
   },
 
-  arrive: () => true,
-  pick: () => true,
+  next: () => {
+    const { scene } = get();
+    const target = nextScene(scene);
+    if (!target || !canTransition(scene, target)) {
+      return false;
+    }
+    set({ scene: target, moving: false });
+    return true;
+  },
+
+  previous: () => {
+    const { scene } = get();
+    const target = previousScene(scene);
+    if (!target || !canTransition(scene, target)) {
+      return false;
+    }
+    set({ scene: target, moving: false });
+    return true;
+  },
+
   reset: () => set({ scene: INITIAL_SCENE, selected: null, moving: false }),
   setMoving: (moving) => set({ moving }),
 }));

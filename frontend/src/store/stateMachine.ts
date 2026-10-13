@@ -1,55 +1,70 @@
 /**
- * TRAZO · máquina de estados de la escena (F01A + F01B).
+ * TRAZO · máquina de estados de la escena (Etapa 2 · experiencia B I S C).
  *
- * El store NUNCA avanza por temporizadores. Solo avanza cuando un
- * componente notifica el final de su animación (ADR-0001), de forma
- * que la secuencia es determinista y testeable.
+ * La experiencia cinematográfica son cinco planos que encadenan la
+ * narración completa: bienvenida → estantería → tema → configuración →
+ * resultado. El store NUNCA avanza por temporizadores: solo avanza
+ * cuando un componente notifica (ADR-0001), así que la secuencia es
+ * determinista y testeable.
  *
- * Los estados de workspace se añaden en F01D, no antes.
+ * El viaje hacia delante es lineal (ARRIVAL → … → RESULT) y cada escena
+ * admite volver a la anterior: «Atrás» es parte del guion, no un
+ * error. Reiniciar desde RESULT lleva a ARRIVAL.
  */
 
 export const SCENES = [
   'ARRIVAL',
   'SHELF_SELECTION',
-  'PLATFORM_SELECTED',
+  'THEME',
+  'CONFIGURATION',
+  'RESULT',
 ] as const;
 
 export type Scene = (typeof SCENES)[number];
 
 /**
- * Grafo de transiciones.
- *
- *   Iniciar      →  las plataformas se vuelven elegibles
- *   elegir una   →  la chica camina hasta ella
- * *llegar*      →  plataforma elegida
+ * Avance lineal. `null` en RESULT porque es el plano final; reiniciar
+ * se hace con `reset()` explícito.
  */
-const TRANSITIONS: Record<Scene, readonly Scene[]> = {
-  ARRIVAL: ['SHELF_SELECTION'],
-  SHELF_SELECTION: ['PLATFORM_SELECTED'],
-  PLATFORM_SELECTED: ['ARRIVAL'],
+export const FORWARD: Record<Scene, Scene | null> = {
+  ARRIVAL: 'SHELF_SELECTION',
+  SHELF_SELECTION: 'THEME',
+  THEME: 'CONFIGURATION',
+  CONFIGURATION: 'RESULT',
+  RESULT: null,
+};
+
+/** El paso atrás de cada escena, para el botón «Atrás»/«Volver». */
+export const BACK: Record<Scene, Scene | null> = {
+  ARRIVAL: null,
+  SHELF_SELECTION: 'ARRIVAL',
+  THEME: 'SHELF_SELECTION',
+  CONFIGURATION: 'THEME',
+  RESULT: 'CONFIGURATION',
 };
 
 /** Estado inicial: el estudio completo, antes de pulsar Iniciar. */
 export const INITIAL_SCENE: Scene = 'ARRIVAL';
 
 export function canTransition(from: Scene, to: Scene): boolean {
-  return TRANSITIONS[from].includes(to);
+  return FORWARD[from] === to || BACK[from] === to;
 }
 
+/** Escena que sigue hacia delante, o `null` si es la final. */
 export function nextScene(from: Scene): Scene | null {
-  return TRANSITIONS[from][0] ?? null;
+  return FORWARD[from];
 }
 
-/** Etiqueta discreta para la interfaz. Nunca sobre la pared. */
+/** Escena anterior, o `null` si ya es la primera. */
+export function previousScene(from: Scene): Scene | null {
+  return BACK[from];
+}
+
+/** Etiqueta discreta de cada plano. Nunca sobre la pared. */
 export const SCENE_LABEL: Record<Scene, string> = {
   ARRIVAL: 'Estudio',
   SHELF_SELECTION: 'Elige una plataforma',
-  PLATFORM_SELECTED: 'Plataforma elegida',
-};
-
-/** Etiqueta corta de la fase actual, para la píldora de estado. */
-export const PHASE_LABEL: Record<Scene, string> = {
-  ARRIVAL: '1A · Estudio',
-  SHELF_SELECTION: '1B · Estantería',
-  PLATFORM_SELECTED: '1D · Elegida',
+  THEME: 'Tema',
+  CONFIGURATION: 'Configuración',
+  RESULT: 'Resultado',
 };

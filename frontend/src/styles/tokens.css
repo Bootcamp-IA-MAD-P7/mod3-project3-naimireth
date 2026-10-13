@@ -77,6 +77,19 @@
   --c-secondary: #3fa3a3;
   --c-secondary-soft: #8fd6d6;
 
+  /* ── Paleta de interfaz (Etapa 2 · rediseño) ──────────────────
+     Azul marino, índigo, violeta, lila, coral y crema. La escena
+     conserva su paleta; estas variables solo alimentan la capa `Ui`,
+     así el carrusel y los formularios no introducen identidad nueva. */
+  --c-ui-navy: #121a33;
+  --c-ui-glass: rgb(10 16 32 / 82%);
+  --c-ui-indigo: #3b3a8f;
+  --c-ui-violet: #6d4fb0;
+  --c-ui-lilac: #b9a3e3;
+  --c-ui-coral: #ff8f6b;
+  --c-ui-rose: #ff7a9c;
+  --c-ui-cream: #f7efe2;
+
   /* ── Plataformas (03) ─────────────────────────────────────── */
   --c-platform-instagram: #e8607c;
   --c-platform-linkedin: #3f7fbf;

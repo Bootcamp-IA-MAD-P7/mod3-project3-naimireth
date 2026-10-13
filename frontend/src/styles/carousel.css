@@ -1,0 +1,285 @@
+/* TRAZO · carrusel de plataformas (Etapa 2 · rediseño).
+ *
+ * EL carrusel vive en su propia pantalla (ya no en la antigua `Ui`):
+ * las posiciones de las tarjetas las calcula Motion en píxeles, así
+ * que aquí solo está la geometría estática —cajas, profundidad del
+ * papel, flechas, puntos y la confirmación— y la paleta de interfaz
+ * de `tokens.css` (marino, índigo, violeta, lila, coral, crema).
+ *
+ * REGLA del ticket: las tarjetas conservan la proporción de su caja
+ * (`--pc-aspect` publicado desde `PlatformCarousel`) y se enmarcan con
+ * `object-fit: cover` (ver nota en `.pcard__img`): la ilustración no
+ * se deforma. Las cinco plataformas son PNG reales de
+ * `redes_sociales_png_corregido/`, incluida Instagram.
+
+/* ── Contenedor ──────────────────────────────────────────────── */
+
+.platform-carousel {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-ui);
+  pointer-events: auto;
+  color: #f4f8f8;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* El escenario entero es la zona de arrastre; las flechas, la bala y
+   la confirmación viven por encima como hermanos posteriores. */
+.platform-carousel__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+}
+
+.platform-carousel__stage:active {
+  cursor: grabbing;
+}
+
+.platform-carousel__stage:focus-visible {
+  outline: 2px solid var(--c-lamp);
+  outline-offset: -2px;
+}
+
+.platform-carousel__belt {
+  position: absolute;
+  inset: 0;
+  perspective: 1300px;
+}
+
+/* ── Tarjetas ────────────────────────────────────────────────── */
+
+.platform-carousel__card {
+  position: absolute;
+  left: calc(50% - var(--pc-w, 260px) / 2);
+  top: 50%;
+  width: var(--pc-w, 260px);
+  cursor: pointer;
+  will-change: transform;
+}
+
+/* Envoltorio con la proporción nativa. `translateY(-50%)` centra la
+   tarjeta sobre el eje del escenario y vive en un nodo estático: si
+   estuviera en el que anima Motion, `transform` completo se pisaría. */
+.platform-carousel__center {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  aspect-ratio: var(--pc-aspect, 0.5774);
+  transform: translateY(-50%);
+}
+
+/* ── La tarjeta (pcard) ──────────────────────────────────────── */
+
+.pcard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--c-ui-navy);
+  border: 1px solid rgb(255 255 255 / 16%);
+  box-shadow: 0 22px 48px -14px rgb(6 10 20 / 62%);
+}
+
+.pcard__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* `cover`, no `contain`: la caja de cada tarjeta ya tiene la misma
+     proporción que su ilustración, así que nadie se recorta. Excepto
+     Instagram, cuyo lienzo es cuadrado y su arte retrato: `cover`
+     descarta solo el margen transparente del PNG y la tarjeta queda
+     del tamaño del resto. */
+  object-fit: cover;
+  background: radial-gradient(120% 120% at 50% 16%, #272c52 0%, #121a33 62%);
+}
+
+/* Papel dibujado con CSS para Instagram: gradación de la paleta de
+   interfaz (índigo → violeta → rosa) con el anillo de luz y el
+   monograma propio. */
+.pcard__art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(
+    from 210deg at 50% 50%,
+    #2b2a6b,
+    #6d3fa0,
+    #e8607c,
+    #ffb35c,
+    #2b2a6b
+  );
+}
+
+.pcard__art::before {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 255 255 / 0%) 58%, rgb(255 255 255 / 16%) 100%);
+}
+
+.pcard__art .token__mono {
+  width: 42%;
+  color: #fff;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 36%);
+}
+
+/* Placa del nombre: único añadido sobre la imagen, con degradado para
+   que el texto se lea sin ocultar la ilustración. */
+.pcard__plate {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1rem 0.8rem;
+  background: linear-gradient(180deg, rgb(8 12 26 / 0%) 0%, rgb(8 12 26 / 80%) 60%);
+}
+
+.pcard__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 65%);
+}
+
+.pcard__name {
+  font-family: var(--font-display);
+  font-size: clamp(0.82rem, 1.35vw, 1.02rem);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+}
+
+/* ── Rótulo, flechas y confirmación ──────────────────────────── */
+
+.platform-carousel__kicker {
+  position: absolute;
+  left: 50%;
+  top: max(1rem, 3.5vh);
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-ui-lilac);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 65%);
+  pointer-events: none;
+}
+
+.platform-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 18%);
+  background: var(--c-ui-glass);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+}
+
+.platform-carousel__arrow--prev {
+  left: max(1rem, 4vw);
+}
+
+.platform-carousel__arrow--next {
+  right: max(1rem, 4vw);
+}
+
+.platform-carousel__arrow:hover:not(:disabled) {
+  border-color: var(--c-lamp);
+  color: var(--c-lamp);
+}
+
+.platform-carousel__arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.platform-carousel__arrow:focus-visible {
+  outline: 2px solid var(--c-lamp);
+  outline-offset: 2px;
+}
+
+.platform-carousel__foot {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.5rem, 3.5vh);
+  display: grid;
+  gap: 0.6rem;
+  justify-items: center;
+  transform: translateX(-50%);
+}
+
+.platform-carousel__hint {
+  margin: 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  color: #cfe0e0;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 55%);
+  pointer-events: none;
+}
+
+.platform-carousel__tools {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.platform-carousel__dots {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.platform-carousel__dot {
+  width: 0.62rem;
+  height: 0.62rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 25%);
+  cursor: pointer;
+}
+
+.platform-carousel__dot:hover {
+  background: rgb(255 255 255 / 45%);
+}
+
+.platform-carousel__dot[aria-current='true'] {
+  background: var(--dot, #fff);
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 24%);
+}
+
+/* ── Preferencias del sistema ─────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .platform-carousel__card {
+    will-change: auto;
+  }
+
+  .platform-carousel__dot,
+  .platform-carousel__arrow {
+    transition: none;
+  }
+}

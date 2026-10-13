@@ -1,9 +1,11 @@
 /**
  * TRAZO · encuadre del mundo.
  *
- * El mundo mide exactamente lo mismo que la placa del estudio
- * (1702 × 924, ver geometry.ts). Al ser 1:1, los recortes de la hoja
- * de poses conservan su tamaño y la ilustración no se estira nunca.
+ * El mundo mide exactamente lo mismo que la placa activa (ver
+ * geometry.ts): la placa del estudio en las escenas de estudio y la
+ * base de tablet en las escenas de tablet. Al ser 1:1, los recortes y
+ * el formulario de la tablet conservan su tamaño y la ilustración no
+ * se estira nunca.
  *
  * Este componente escala el mundo al viewport y publica su tamaño
  * como variables CSS con unidad. Con unidad es obligatorio: una
@@ -13,36 +15,36 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 
-import { PLATE } from './geometry';
+import type { AssetInfo } from './geometry';
 
-function useCoverScale() {
+function useCoverScale(plate: AssetInfo) {
   const [scale, setScale] = useState(1);
 
   useEffect(() => {
     function measure() {
-      setScale(Math.max(window.innerWidth / PLATE.w, window.innerHeight / PLATE.h));
+      setScale(Math.max(window.innerWidth / plate.w, window.innerHeight / plate.h));
     }
 
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
-  }, []);
+  }, [plate.w, plate.h]);
 
   return scale;
 }
 
-export function World({ children }: { children: React.ReactNode }) {
-  const scale = useCoverScale();
+export function World({ plate, children }: { plate: AssetInfo; children: React.ReactNode }) {
+  const scale = useCoverScale(plate);
 
   const style = useMemo(
     () =>
       ({
-        '--plate-w': `${PLATE.w}px`,
-        '--plate-h': `${PLATE.h}px`,
+        '--plate-w': `${plate.w}px`,
+        '--plate-h': `${plate.h}px`,
         // Único factor sin unidad: es un `scale()`, no una longitud.
         '--plate-scale': scale,
       }) as unknown as React.CSSProperties,
-    [scale],
+    [plate.w, plate.h, scale],
   );
 
   return (

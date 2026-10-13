@@ -1,19 +1,17 @@
-import { Studio } from './scene/Studio';
-import { Ui } from './components/Ui';
+import { Experience } from './features/app/Experience';
 
 /**
- * TRAZO · F01A.
+ * TRAZO · punto de entrada del rediseño visual.
  *
- * El estudio y la interfaz son dos capas hermanas dentro de `.app`:
- * la escena se encuadra y se mueve, la interfaz se queda quieta. Si la
- * UI viviera dentro del mundo escalado, sus textos se deformarían con
- * el zoom de cámara.
+ * La experiencia principal es `Experience`: cada fase de la máquina de
+ * estados se muestra como una pantalla propia a pantalla completa, sin
+ * la antigua escena del estudio debajo. `Studio` y la escena con cámara
+ * dejan de pertenecer al recorrido principal (el código se conserva).
  */
 export default function App() {
   return (
     <div className="app">
-      <Studio />
-      <Ui />
+      <Experience />
     </div>
   );
 }

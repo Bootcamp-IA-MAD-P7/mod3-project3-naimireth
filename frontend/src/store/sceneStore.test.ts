@@ -1,9 +1,9 @@
 /**
  * TRAZO · verificación del store.
  *
- * El store es la fuente de verdad y solo avanza por eventos de fin
- * de animación. Estos tests comprueban el grafo desde el propio
- * store, sin montar componentes.
+ * El store es la fuente de verdad. Estos tests comprueban el grafo y la
+ * máquina de la experiencia B I S C (ARRIVAL → SHELF_SELECTION → THEME →
+ * CONFIGURATION → RESULT, con Atrás), sin montar componentes.
  */
 import { beforeEach, describe, expect, it } from 'vitest';
 
@@ -14,23 +14,15 @@ describe('store de la escena', () => {
     useSceneStore.getState().reset();
   });
 
-  /** Deja el store listo para aceptar un clic: la cámara ya se ha parado. */
-  function beginAndSettle() {
-    useSceneStore.getState().begin();
-    useSceneStore.getState().setMoving(false);
-  }
-
   it('arranca en ARRIVAL sin plataforma elegida', () => {
     const s = useSceneStore.getState();
     expect(s.scene).toBe('ARRIVAL');
     expect(s.selected).toBeNull();
   });
 
-  it('Iniciar lleva a SHELF_SELECTION y bloquea el clic mientras hay movimiento', () => {
+  it('Iniciar lleva a SHELF_SELECTION', () => {
     expect(useSceneStore.getState().begin()).toBe(true);
-    const s = useSceneStore.getState();
-    expect(s.scene).toBe('SHELF_SELECTION');
-    expect(s.moving).toBe(true);
+    expect(useSceneStore.getState().scene).toBe('SHELF_SELECTION');
   });
 
   it('no se puede elegir plataforma antes de iniciar', () => {
@@ -40,44 +32,65 @@ describe('store de la escena', () => {
 
   it('no se puede elegir plataforma mientras la cámara se mueve', () => {
     useSceneStore.getState().begin();
+    useSceneStore.getState().setMoving(true);
     expect(useSceneStore.getState().select('instagram')).toBe(false);
   });
 
-  it('elegir plataforma guarda la elección y arranca el paseo', () => {
-    beginAndSettle();
-
+  it('elegir plataforma guarda la elección y pasa a THEME', () => {
+    useSceneStore.getState().begin();
     expect(useSceneStore.getState().select('blog')).toBe(true);
     const s = useSceneStore.getState();
-    expect(s.scene).toBe('CHARACTER_MOVING');
+    expect(s.scene).toBe('THEME');
     expect(s.selected).toBe('blog');
-    expect(s.moving).toBe(true);
   });
 
-  it('no admite una segunda elección mientras la chica camina', () => {
-    beginAndSettle();
+  it('no admite una segunda elección una vez elegida la plataforma', () => {
+    useSceneStore.getState().begin();
     useSceneStore.getState().select('instagram');
     expect(useSceneStore.getState().select('blog')).toBe(false);
     expect(useSceneStore.getState().selected).toBe('instagram');
   });
 
-  it('al llegar la escena pasa a PLATFORM_SELECTED y se libera el movimiento', () => {
-    beginAndSettle();
-    useSceneStore.getState().select('x');
-
-    expect(useSceneStore.getState().arrive()).toBe(true);
-    const s = useSceneStore.getState();
-    expect(s.scene).toBe('CHARACTER_PICKING');
-    expect(s.selected).toBe('x');
-    expect(s.moving).toBe(true);
+  it('setMoving controla el bloqueo del clic', () => {
+    useSceneStore.getState().setMoving(true);
+    expect(useSceneStore.getState().moving).toBe(true);
+    useSceneStore.getState().setMoving(false);
+    expect(useSceneStore.getState().moving).toBe(false);
   });
 
-  it('arrive() no hace nada si la chica no estaba caminando', () => {
-    expect(useSceneStore.getState().arrive()).toBe(false);
+  it('next avanza hasta RESULT y el final no avanza más', () => {
+    const s = useSceneStore.getState();
+    expect(s.begin()).toBe(true);
+
+    expect(s.select('x')).toBe(true); // → THEME
+    expect(s.next()).toBe(true); // → CONFIGURATION
+    expect(s.next()).toBe(true); // → RESULT
+    expect(useSceneStore.getState().scene).toBe('RESULT');
+    expect(useSceneStore.getState().next()).toBe(false);
+    expect(useSceneStore.getState().scene).toBe('RESULT');
+  });
+
+  it('previous vuelve atrás por cada plano hasta la portada', () => {
+    const s = useSceneStore.getState();
+    s.begin();
+    s.select('x');
+    s.next(); // → CONFIGURATION
+    s.next(); // → RESULT
+
+    expect(s.previous()).toBe(true); // → CONFIGURATION
+    expect(useSceneStore.getState().scene).toBe('CONFIGURATION');
+    expect(s.previous()).toBe(true); // → THEME
+    expect(useSceneStore.getState().scene).toBe('THEME');
+    expect(s.previous()).toBe(true); // → SHELF_SELECTION
+    expect(useSceneStore.getState().scene).toBe('SHELF_SELECTION');
+    expect(s.previous()).toBe(true); // → ARRIVAL
+    expect(useSceneStore.getState().scene).toBe('ARRIVAL');
+    expect(s.previous()).toBe(false); // la portada no retrocede
     expect(useSceneStore.getState().scene).toBe('ARRIVAL');
   });
 
   it('el reinicio borra también la plataforma elegida', () => {
-    beginAndSettle();
+    useSceneStore.getState().begin();
     useSceneStore.getState().select('linkedin');
     useSceneStore.getState().reset();
 
